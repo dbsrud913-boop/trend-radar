@@ -1,0 +1,462 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>트렌드 레이더 — 키워드 반응 모니터링</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b23; --panel2:#1c2330; --line:#2a3342;
+    --text:#e8edf4; --muted:#8b98ab; --accent:#4da3ff; --accent2:#39d98a;
+    --news:#ffb454; --yt:#ff5d5d; --comm:#b18cff;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 80px}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px}
+  .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo .dot{width:12px;height:12px;border-radius:50%;background:var(--accent);box-shadow:0 0 12px var(--accent)}
+  .gear{cursor:pointer;color:var(--muted);font-size:14px;border:1px solid var(--line);padding:7px 14px;border-radius:8px;background:var(--panel)}
+  .gear:hover{color:var(--text)}
+
+  .searchbox{display:flex;gap:10px}
+  .searchbox input{flex:1;background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:15px 18px;font-size:16px;color:var(--text);outline:none}
+  .searchbox input:focus{border-color:var(--accent)}
+  .searchbox button{background:var(--accent);border:none;border-radius:12px;padding:0 26px;font-size:16px;font-weight:700;color:#06121f;cursor:pointer}
+  .searchbox button:disabled{opacity:.5;cursor:wait}
+  .chips{display:flex;gap:8px;margin-top:12px;flex-wrap:wrap}
+  .chip{font-size:13px;color:var(--muted);border:1px solid var(--line);padding:5px 12px;border-radius:99px;cursor:pointer;background:var(--panel)}
+  .chip:hover{color:var(--text);border-color:var(--accent)}
+
+  .daterow{display:flex;gap:8px;margin-top:16px;flex-wrap:wrap;align-items:center}
+  .daterow .lbl{font-size:13px;color:var(--muted)}
+  .preset{font-size:13px;padding:6px 14px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted);cursor:pointer}
+  .preset.active{background:var(--accent);color:#06121f;border-color:var(--accent);font-weight:700}
+  .daterow input[type=date]{background:var(--panel);border:1px solid var(--line);border-radius:8px;padding:5px 10px;color:var(--text);font-size:13px;color-scheme:dark}
+  .koline{font-size:13px;color:var(--accent2);margin-top:6px;line-height:1.5}
+
+  .quicklinks{display:none;gap:8px;margin-top:18px;flex-wrap:wrap}
+  .quicklinks a{font-size:13px;padding:6px 12px;border-radius:8px;border:1px solid var(--line);background:var(--panel);color:var(--muted)}
+  .quicklinks a:hover{color:var(--text);border-color:var(--accent)}
+
+  .insights{display:none;grid-template-columns:repeat(auto-fit,minmax(200px,1fr));gap:12px;margin-top:22px}
+  .card-stat{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px}
+  .card-stat h4{font-size:12px;color:var(--muted);font-weight:600;margin-bottom:8px}
+  .card-stat .big{font-size:24px;font-weight:800}
+  .words{display:flex;flex-wrap:wrap;gap:6px}
+  .words span{font-size:12px;background:var(--panel2);border-radius:6px;padding:4px 8px;color:var(--text)}
+  .bars{display:flex;align-items:flex-end;gap:4px;height:44px;margin-top:4px}
+  .bars div{flex:1;background:var(--accent);border-radius:3px 3px 0 0;min-height:2px;opacity:.85}
+  .bars-labels{display:flex;gap:4px;margin-top:4px}
+  .bars-labels span{flex:1;text-align:center;font-size:9px;color:var(--muted)}
+
+  .tabs{display:none;gap:6px;margin:26px 0 14px;border-bottom:1px solid var(--line);padding-bottom:0}
+  .tab{padding:10px 18px;font-size:14px;font-weight:600;color:var(--muted);cursor:pointer;border-bottom:2px solid transparent}
+  .tab.active{color:var(--text);border-bottom-color:var(--accent)}
+  .tab .cnt{font-size:11px;color:var(--muted);margin-left:4px}
+
+  .status{display:none;gap:10px;margin-top:8px;flex-wrap:wrap}
+  .src-st{font-size:12px;color:var(--muted);display:flex;align-items:center;gap:5px}
+  .src-st i{width:8px;height:8px;border-radius:50%;display:inline-block;background:var(--muted)}
+  .src-st.ok i{background:var(--accent2)}
+  .src-st.fail i{background:#ff5d5d}
+  .src-st.loading i{background:var(--news);animation:blink 1s infinite}
+  @keyframes blink{50%{opacity:.3}}
+
+  .results{display:flex;flex-direction:column;gap:10px}
+  .item{background:var(--panel);border:1px solid var(--line);border-radius:12px;padding:16px 18px;display:block;transition:border-color .15s}
+  .item:hover{border-color:var(--accent)}
+  .item .meta{display:flex;align-items:center;gap:8px;margin-bottom:7px;font-size:12px;color:var(--muted)}
+  .badge{font-size:11px;font-weight:700;padding:3px 8px;border-radius:6px}
+  .badge.news{background:rgba(255,180,84,.15);color:var(--news)}
+  .badge.youtube{background:rgba(255,93,93,.15);color:var(--yt)}
+  .badge.community{background:rgba(177,140,255,.15);color:var(--comm)}
+  .item h3{font-size:15px;font-weight:600;line-height:1.45;margin-bottom:5px}
+  .item p{font-size:13px;color:var(--muted);line-height:1.5;display:-webkit-box;-webkit-line-clamp:2;-webkit-box-orient:vertical;overflow:hidden}
+  .item .stats{margin-top:8px;font-size:12px;color:var(--muted)}
+  .thumbrow{display:flex;gap:14px}
+  .thumbrow img{width:150px;height:84px;object-fit:cover;border-radius:8px;flex-shrink:0}
+  .thumbrow .tx{min-width:0}
+
+  .empty{color:var(--muted);text-align:center;padding:50px 0;font-size:14px;line-height:1.8}
+  .notice{font-size:13px;color:var(--muted);background:var(--panel);border:1px dashed var(--line);border-radius:10px;padding:12px 16px;margin-top:14px;line-height:1.6;display:none}
+
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(0,0,0,.6);z-index:10;align-items:center;justify-content:center}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:26px;width:min(480px,90vw)}
+  .modal h3{margin-bottom:6px}
+  .modal p{font-size:13px;color:var(--muted);line-height:1.7;margin-bottom:14px}
+  .modal input{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:8px;padding:12px;color:var(--text);font-size:14px;outline:none;margin-bottom:14px}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end}
+  .modal button{padding:9px 18px;border-radius:8px;border:1px solid var(--line);background:var(--panel2);color:var(--text);cursor:pointer;font-size:14px}
+  .modal button.primary{background:var(--accent);color:#06121f;border:none;font-weight:700}
+  .modal a{color:var(--accent)}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="dot"></span>트렌드 레이더</div>
+    <div class="gear" onclick="openSettings()">⚙ 설정</div>
+  </header>
+
+  <div class="searchbox">
+    <input id="q" placeholder="키워드를 입력하세요 (예: PC, 게이밍 노트북, 전기차…)" onkeydown="if(event.key==='Enter')search()">
+    <button id="btn" onclick="search()">검색</button>
+  </div>
+  <div class="chips">
+    <span class="chip" onclick="quick('PC')">PC</span>
+    <span class="chip" onclick="quick('노트북')">노트북</span>
+    <span class="chip" onclick="quick('전기차')">전기차</span>
+    <span class="chip" onclick="quick('AI 반도체')">AI 반도체</span>
+    <span class="chip" onclick="quick('스마트폰')">스마트폰</span>
+  </div>
+
+  <div class="daterow">
+    <span class="lbl">기간:</span>
+    <span class="preset" data-d="1" onclick="setPreset(1,this)">하루</span>
+    <span class="preset active" data-d="7" onclick="setPreset(7,this)">일주일</span>
+    <span class="preset" data-d="30" onclick="setPreset(30,this)">한 달</span>
+    <span class="preset" data-d="90" onclick="setPreset(90,this)">3개월</span>
+    <span class="lbl" style="margin-left:6px">직접 설정:</span>
+    <input type="date" id="d-start" onchange="applyCustom()">
+    <span class="lbl">~</span>
+    <input type="date" id="d-end" onchange="applyCustom()">
+  </div>
+
+  <div class="quicklinks" id="quicklinks"></div>
+
+  <div class="insights" id="insights">
+    <div class="card-stat"><h4>수집 결과</h4><div class="big" id="st-total">0건</div></div>
+    <div class="card-stat"><h4 id="st-bars-title">기간 내 언급 추이</h4><div class="bars" id="st-bars"></div><div class="bars-labels" id="st-bars-lb"></div></div>
+    <div class="card-stat" style="grid-column:span 2;min-width:0"><h4>자주 등장한 단어</h4><div class="words" id="st-words"></div></div>
+  </div>
+
+  <div class="tabs" id="tabs">
+    <div class="tab active" data-t="all" onclick="setTab('all')">전체<span class="cnt"></span></div>
+    <div class="tab" data-t="news" onclick="setTab('news')">뉴스<span class="cnt"></span></div>
+    <div class="tab" data-t="youtube" onclick="setTab('youtube')">유튜브<span class="cnt"></span></div>
+    <div class="tab" data-t="community" onclick="setTab('community')">블로그·카페<span class="cnt"></span></div>
+  </div>
+  <div class="status" id="status"></div>
+
+  <div class="notice" id="yt-notice">
+    <b>⚙ 설정</b>에서 무료 API 키를 등록하면 더 많은 결과를 볼 수 있어요:
+    <b>카카오 키</b> → 한국 블로그·카페 반응 / <b>유튜브 키</b> → 영상·조회수·댓글수.
+    키가 없어도 아래 <b>외부 검색 바로가기</b>로 확인할 수 있습니다.
+  </div>
+
+  <div class="results" id="results"><div class="empty">키워드를 검색하면 뉴스 · 유튜브 · 커뮤니티 반응을 한 번에 모아 보여드립니다.</div></div>
+</div>
+
+<div class="modal-bg" id="modal">
+  <div class="modal" style="max-height:85vh;overflow-y:auto">
+    <h3>설정</h3>
+
+    <p style="margin-top:12px;margin-bottom:6px"><b style="color:var(--text)">한국어 요약</b></p>
+    <label style="font-size:13px;color:var(--muted);display:flex;align-items:center;gap:8px;margin-bottom:18px;cursor:pointer">
+      <input type="checkbox" id="autoko" style="width:auto;margin:0;accent-color:var(--accent)">
+      외국어 결과 제목을 한국어로 자동 번역해 표시 (무료 구글 번역)
+    </label>
+
+    <p style="margin-bottom:6px"><b style="color:var(--text)">유튜브 Data API 키</b></p>
+    <p style="margin-bottom:8px">
+      <a href="https://console.cloud.google.com/apis/library/youtube.googleapis.com" target="_blank">Google Cloud Console</a>에서
+      YouTube Data API v3 사용 설정 → API 키 만들기 → 붙여넣기<br>
+      (무료 할당량: 하루 검색 약 100회 · 모든 키는 이 브라우저에만 저장됩니다)
+    </p>
+    <input id="ytkey" placeholder="AIza... 형식의 API 키">
+
+    <p style="margin-bottom:6px"><b style="color:var(--text)">카카오 REST API 키 (한국 블로그·카페 반응)</b></p>
+    <p style="margin-bottom:8px">
+      <a href="https://developers.kakao.com/console/app" target="_blank">카카오 개발자 콘솔</a>에서
+      애플리케이션 추가 → 앱 키 중 <b>REST API 키</b> 복사 → 붙여넣기 (무료)<br>
+      등록하면 <b>블로그·카페</b> 탭에 다음(Daum) 검색 기반 한국 블로그·카페 글이 표시됩니다.
+    </p>
+    <input id="kakaokey" placeholder="카카오 REST API 키">
+
+    <p style="margin-bottom:6px"><b style="color:var(--text)">기타 API 키</b></p>
+    <p style="margin-bottom:8px">나중에 쓸 다른 서비스의 API 키를 이름과 함께 보관할 수 있습니다.</p>
+    <div id="customkeys"></div>
+    <button style="margin-bottom:16px;font-size:13px" onclick="addKeyRow()">＋ 다른 API 키 추가</button>
+
+    <div class="row">
+      <button onclick="closeSettings()">닫기</button>
+      <button class="primary" onclick="saveKey()">저장</button>
+    </div>
+  </div>
+</div>
+
+<script>
+const $=id=>document.getElementById(id);
+let items=[], curTab='all', srcStatus={}, uidc=0;
+const koCache={};
+
+/* ---------- 기간 ---------- */
+let presetDays=7, customRange=null;
+function setPreset(d,el){
+  presetDays=d; customRange=null;
+  $('d-start').value=''; $('d-end').value='';
+  document.querySelectorAll('.preset').forEach(p=>p.classList.toggle('active',p===el));
+  if($('q').value.trim()) search();
+}
+function applyCustom(){
+  const s=$('d-start').value, e=$('d-end').value;
+  if(!s||!e) return;
+  const start=new Date(s+'T00:00:00'), end=new Date(e+'T23:59:59');
+  if(start>end) return;
+  customRange=[start,end];
+  document.querySelectorAll('.preset').forEach(p=>p.classList.remove('active'));
+  if($('q').value.trim()) search();
+}
+function curRange(){
+  if(customRange) return customRange;
+  const end=new Date(), start=new Date(Date.now()-presetDays*86400000);
+  return [start,end];
+}
+function inRange(d){
+  if(!(d instanceof Date)||isNaN(d)) return true;
+  const [s,e]=curRange();
+  return d>=s&&d<=e;
+}
+
+/* ---------- 검색 ---------- */
+function quick(k){ $('q').value=k; search(); }
+async function search(){
+  const q=$('q').value.trim();
+  if(!q) return;
+  items=[]; srcStatus={};
+  $('btn').disabled=true;
+  $('results').innerHTML='<div class="empty">수집 중…</div>';
+  ['tabs','status'].forEach(id=>$(id).style.display='flex');
+  $('insights').style.display='grid';
+  renderQuickLinks(q);
+  const jobs=[
+    ['국내 뉴스', fetchNews(q,'ko-KR')],
+    ['해외 뉴스', fetchNews(q,'en-US')],
+  ];
+  const ytKey=localStorage.getItem('ytkey');
+  if(ytKey) jobs.push(['유튜브', fetchYouTube(q,ytKey)]);
+  const kkKey=localStorage.getItem('kakaokey');
+  if(kkKey){
+    jobs.push(['블로그(카카오)', fetchKakao(q,'blog',kkKey)]);
+    jobs.push(['카페(카카오)', fetchKakao(q,'cafe',kkKey)]);
+  }
+  $('yt-notice').style.display = (ytKey&&kkKey) ? 'none':'block';
+  jobs.forEach(([name])=>{srcStatus[name]='loading'}); renderStatus();
+  await Promise.all(jobs.map(async([name,p])=>{
+    try{ const r=await p; r.forEach(i=>i.uid=++uidc); items.push(...r); srcStatus[name]='ok'; }
+    catch(e){ console.warn(name,e); srcStatus[name]='fail'; }
+    renderStatus(); render();
+  }));
+  $('btn').disabled=false;
+  render(); renderInsights(); kickTranslate();
+}
+
+/* ---------- 한국어 요약(자동 번역) ---------- */
+function autoKo(){ return localStorage.getItem('autoko')!=='0'; }
+async function translateKo(t){
+  const r=await fetch('https://translate.googleapis.com/translate_a/single?client=gtx&sl=auto&tl=ko&dt=t&q='+encodeURIComponent(t));
+  if(!r.ok) throw 0;
+  const j=await r.json();
+  return j[0].map(x=>x[0]).join('');
+}
+async function kickTranslate(){
+  if(!autoKo()) return;
+  const targets=items.filter(i=>inRange(i.date)&&!i.ko&&!/[가-힣]/.test(i.title)).slice(0,50);
+  for(const i of targets){
+    try{ i.ko = koCache[i.title] || (koCache[i.title]=await translateKo(i.title)); }
+    catch(e){ console.warn('translate fail',e); break; }
+    const el=document.querySelector(`[data-uid="${i.uid}"] .koline`);
+    if(el){ el.textContent='한줄 요약: '+i.ko; el.style.display='block'; }
+  }
+}
+
+/* ---------- 소스별 수집 ---------- */
+async function fetchNews(q,mkt){
+  const rss=`https://www.bing.com/news/search?q=${encodeURIComponent(q)}&format=rss&setmkt=${mkt}`;
+  const r=await fetch('https://api.rss2json.com/v1/api.json?rss_url='+encodeURIComponent(rss));
+  if(!r.ok) throw 0;
+  const j=await r.json();
+  if(j.status!=='ok') throw 0;
+  return (j.items||[]).slice(0,15).map(it=>({
+    type:'news', src:(mkt==='ko-KR'?'국내 뉴스':'해외 뉴스'),
+    title:strip(it.title), desc:strip(it.description||''),
+    url:it.link, date:new Date(it.pubDate)
+  }));
+}
+async function fetchKakao(q,kind,key){
+  const r=await fetch(`https://dapi.kakao.com/v2/search/${kind}?query=${encodeURIComponent(q)}&size=15&sort=recency`,{
+    headers:{Authorization:'KakaoAK '+key}
+  });
+  if(!r.ok) throw 0;
+  const j=await r.json();
+  return (j.documents||[]).map(d=>({
+    type:'community', src:(kind==='blog'?'블로그 · ':'카페 · ')+(d.blogname||d.cafename||''),
+    title:strip(d.title), desc:strip(d.contents||''),
+    url:d.url, date:new Date(d.datetime)
+  }));
+}
+async function fetchYouTube(q,key){
+  const [rs,re]=curRange();
+  const s=await fetch(`https://www.googleapis.com/youtube/v3/search?part=snippet&type=video&maxResults=12&relevanceLanguage=ko&publishedAfter=${rs.toISOString()}&publishedBefore=${re.toISOString()}&q=${encodeURIComponent(q)}&key=${key}`);
+  if(!s.ok) throw 0;
+  const sj=await s.json();
+  const ids=sj.items.map(i=>i.id.videoId).join(',');
+  let stats={};
+  try{
+    const v=await fetch(`https://www.googleapis.com/youtube/v3/videos?part=statistics&id=${ids}&key=${key}`);
+    (await v.json()).items.forEach(i=>stats[i.id]=i.statistics);
+  }catch(e){}
+  return sj.items.map(i=>{
+    const st=stats[i.id.videoId]||{};
+    return {
+      type:'youtube', src:i.snippet.channelTitle,
+      title:decode(i.snippet.title), desc:i.snippet.description,
+      url:'https://www.youtube.com/watch?v='+i.id.videoId,
+      date:new Date(i.snippet.publishedAt),
+      thumb:i.snippet.thumbnails?.medium?.url,
+      stats:st.viewCount?`조회 ${Number(st.viewCount).toLocaleString()} · 댓글 ${Number(st.commentCount||0).toLocaleString()}`:''
+    };
+  });
+}
+
+/* ---------- 렌더 ---------- */
+function render(){
+  const vis=items.filter(i=>inRange(i.date));
+  const list=vis.filter(i=>curTab==='all'||i.type===curTab).sort((a,b)=>b.date-a.date);
+  document.querySelectorAll('.tab').forEach(t=>{
+    const k=t.dataset.t;
+    t.querySelector('.cnt').textContent=' '+(k==='all'?vis.length:vis.filter(i=>i.type===k).length);
+  });
+  if(!list.length){
+    const hidden=items.filter(i=>(curTab==='all'||i.type===curTab)&&!inRange(i.date)).length;
+    let msg='결과가 없습니다.';
+    if(curTab==='youtube'&&!localStorage.getItem('ytkey')) msg='⚙ 설정에서 유튜브 API 키를 등록하면 여기에 영상 반응이 표시됩니다.';
+    else if(curTab==='community'&&!localStorage.getItem('kakaokey')) msg='⚙ 설정에서 카카오 REST API 키를 등록하면 여기에 한국 블로그·카페 반응이 표시됩니다.';
+    else if(hidden>0) msg=`설정한 기간 안의 결과는 없지만, 기간 밖에 ${hidden}건이 있습니다.<br>위에서 기간을 <b>한 달</b>이나 <b>3개월</b>로 늘리거나 직접 설정해 보세요.`;
+    $('results').innerHTML=`<div class="empty">${msg}</div>`;
+    return;
+  }
+  $('results').innerHTML=list.map(i=>{
+    const badge={news:'뉴스',youtube:'유튜브',community:'커뮤니티'}[i.type];
+    const inner=`
+      <div class="meta"><span class="badge ${i.type}">${badge}</span><span>${esc(i.src)}</span><span>·</span><span>${ago(i.date)}</span></div>
+      <h3>${esc(i.title)}</h3>
+      <div class="koline" style="${i.ko?'':'display:none'}">${i.ko?'한줄 요약: '+esc(i.ko):''}</div>
+      ${i.desc?`<p>${esc(i.desc)}</p>`:''}
+      ${i.stats?`<div class="stats">${i.stats}</div>`:''}`;
+    return `<a class="item" data-uid="${i.uid}" href="${i.url}" target="_blank" rel="noopener">${
+      i.thumb?`<div class="thumbrow"><img src="${i.thumb}" loading="lazy"><div class="tx">${inner}</div></div>`:inner
+    }</a>`;
+  }).join('');
+}
+function renderStatus(){
+  $('status').innerHTML=Object.entries(srcStatus).map(([n,s])=>
+    `<span class="src-st ${s}"><i></i>${n}${s==='fail'?' (실패)':''}</span>`).join('');
+}
+function renderInsights(){
+  const vis=items.filter(i=>inRange(i.date));
+  $('st-total').textContent=vis.length+'건';
+  // 기간 내 추이 (31일 이하: 일 단위 / 초과: 주 단위)
+  const [rs,re]=curRange();
+  const totalDays=Math.max(1,Math.round((re-rs)/86400000));
+  const step=totalDays<=31?1:7;
+  const buckets=[];
+  for(let t=rs.getTime();t<re.getTime();t+=step*86400000) buckets.push([t,t+step*86400000]);
+  const counts=buckets.map(([a,b])=>vis.filter(i=>i.date>=a&&i.date<b).length);
+  const mx=Math.max(...counts,1);
+  $('st-bars-title').textContent=`기간 내 언급 추이 (${step===1?'일':'주'} 단위)`;
+  $('st-bars').innerHTML=counts.map(c=>`<div style="height:${Math.round(c/mx*100)}%" title="${c}건"></div>`).join('');
+  const lbStep=Math.ceil(buckets.length/8);
+  $('st-bars-lb').innerHTML=buckets.map(([a],k)=>{const d=new Date(a);return `<span>${k%lbStep===0?(d.getMonth()+1)+'/'+d.getDate():''}</span>`}).join('');
+  // 단어 빈도
+  const stop=new Set(['그리고','하지만','있는','있다','대한','위한','통해','관련','이번','오늘','기자','뉴스','것으로','한다','했다','the','a','an','and','or','of','to','in','for','is','on','with','at','by','from','this','that','it','as','be','are','was','will','has','have','how','what','why','new','you','your',$('q').value.trim().toLowerCase()]);
+  const freq={};
+  vis.forEach(i=>(i.title+' '+(i.desc||'')).toLowerCase().replace(/[^\w가-힣\s]/g,' ').split(/\s+/).forEach(w=>{
+    if(w.length>=2&&!stop.has(w)&&!/^\d+$/.test(w)) freq[w]=(freq[w]||0)+1;
+  }));
+  const top=Object.entries(freq).sort((a,b)=>b[1]-a[1]).slice(0,18);
+  $('st-words').innerHTML=top.map(([w,c])=>`<span>${esc(w)} <b style="color:var(--accent)">${c}</b></span>`).join('')||'<span>데이터 부족</span>';
+}
+function renderQuickLinks(q){
+  const e=encodeURIComponent(q);
+  const links=[
+    ['유튜브 검색',`https://www.youtube.com/results?search_query=${e}`],
+    ['네이버 뉴스',`https://search.naver.com/search.naver?where=news&query=${e}`],
+    ['네이버 블로그',`https://search.naver.com/search.naver?ssc=tab.blog.all&query=${e}`],
+    ['네이버 카페',`https://search.naver.com/search.naver?ssc=tab.cafe.all&query=${e}`],
+    ['X (트위터)',`https://x.com/search?q=${e}&f=live`],
+    ['레딧',`https://www.reddit.com/search/?q=${e}`],
+    ['인스타그램',`https://www.instagram.com/explore/search/keyword/?q=${e}`],
+    ['구글 트렌드',`https://trends.google.co.kr/trends/explore?q=${e}&geo=KR`],
+    ['네이버 데이터랩','https://datalab.naver.com/keyword/trendSearch.naver'],
+  ];
+  const el=$('quicklinks');
+  el.style.display='flex';
+  el.innerHTML='<span style="font-size:13px;color:var(--muted);align-self:center">외부 검색 바로가기:</span>'+
+    links.map(([n,u])=>`<a href="${u}" target="_blank" rel="noopener">${n} ↗</a>`).join('');
+}
+
+/* ---------- 탭/설정 ---------- */
+function setTab(t){
+  curTab=t;
+  document.querySelectorAll('.tab').forEach(x=>x.classList.toggle('active',x.dataset.t===t));
+  render();
+}
+function openSettings(){
+  $('ytkey').value=localStorage.getItem('ytkey')||'';
+  $('kakaokey').value=localStorage.getItem('kakaokey')||'';
+  $('autoko').checked=autoKo();
+  renderKeyRows();
+  $('modal').style.display='flex';
+}
+function closeSettings(){ $('modal').style.display='none'; }
+function getCustomKeys(){ try{return JSON.parse(localStorage.getItem('customkeys'))||[]}catch(e){return []} }
+function renderKeyRows(){
+  const keys=getCustomKeys();
+  $('customkeys').innerHTML=keys.map((k,idx)=>keyRowHtml(k.name,k.key,idx)).join('');
+}
+function keyRowHtml(name,key,idx){
+  return `<div class="keyrow" style="display:flex;gap:8px;margin-bottom:8px">
+    <input placeholder="서비스 이름 (예: 네이버, X)" value="${esc(name||'')}" style="flex:1;margin-bottom:0">
+    <input placeholder="API 키" value="${esc(key||'')}" style="flex:2;margin-bottom:0">
+    <button style="padding:0 12px" title="삭제" onclick="this.parentElement.remove()">✕</button>
+  </div>`;
+}
+function addKeyRow(){
+  $('customkeys').insertAdjacentHTML('beforeend',keyRowHtml('','',-1));
+}
+function saveKey(){
+  const v=$('ytkey').value.trim();
+  if(v) localStorage.setItem('ytkey',v); else localStorage.removeItem('ytkey');
+  const kk=$('kakaokey').value.trim();
+  if(kk) localStorage.setItem('kakaokey',kk); else localStorage.removeItem('kakaokey');
+  localStorage.setItem('autoko',$('autoko').checked?'1':'0');
+  const keys=[...document.querySelectorAll('#customkeys .keyrow')].map(row=>{
+    const [n,k]=row.querySelectorAll('input');
+    return {name:n.value.trim(),key:k.value.trim()};
+  }).filter(k=>k.name||k.key);
+  localStorage.setItem('customkeys',JSON.stringify(keys));
+  closeSettings();
+  if($('q').value.trim()) search();
+}
+$('modal').addEventListener('click',e=>{if(e.target.id==='modal')closeSettings()});
+
+/* ---------- 유틸 ---------- */
+function txt(el,sel){const n=el.querySelector(sel);return n?n.textContent:''}
+function strip(html){const d=document.createElement('div');d.innerHTML=html;return d.textContent.trim()}
+function decode(s){const d=document.createElement('textarea');d.innerHTML=s;return d.value}
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function ago(d){
+  if(!(d instanceof Date)||isNaN(d)) return '';
+  const m=(Date.now()-d)/60000;
+  if(m<60) return Math.max(1,Math.round(m))+'분 전';
+  if(m<1440) return Math.round(m/60)+'시간 전';
+  if(m<43200) return Math.round(m/1440)+'일 전';
+  return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
+}
+</script>
+</body>
+</html>
