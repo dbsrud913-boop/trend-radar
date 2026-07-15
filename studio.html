@@ -1,0 +1,655 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>콘텐츠 스튜디오 — 네이버 블로그 · 인스타 카드뉴스 자동 생성</title>
+<style>
+  :root{
+    --bg:#0e1116; --panel:#161b23; --panel2:#1c2330; --line:#2a3342;
+    --text:#e8edf4; --muted:#8b98ab; --accent:#4da3ff; --accent2:#39d98a;
+    --warn:#ffb454;
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  body{background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;min-height:100vh}
+  a{color:inherit;text-decoration:none}
+  .wrap{max-width:960px;margin:0 auto;padding:28px 20px 100px}
+
+  header{display:flex;align-items:center;justify-content:space-between;margin-bottom:26px;flex-wrap:wrap;gap:10px}
+  .logo{display:flex;align-items:center;gap:10px;font-size:20px;font-weight:800;letter-spacing:-.5px}
+  .logo .dot{width:12px;height:12px;border-radius:50%;background:var(--accent2);box-shadow:0 0 12px var(--accent2)}
+  .backlink{font-size:13px;color:var(--muted);border:1px solid var(--line);padding:7px 14px;border-radius:8px;background:var(--panel)}
+  .backlink:hover{color:var(--text);border-color:var(--accent)}
+
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:14px;padding:22px;margin-bottom:18px}
+  .card h2{font-size:16px;font-weight:800;margin-bottom:14px;display:flex;align-items:center;gap:8px}
+  .card h2 .step{font-size:12px;font-weight:700;background:var(--accent);color:#06121f;border-radius:6px;padding:3px 8px}
+  .lbl{font-size:13px;color:var(--muted);margin:12px 0 6px;display:block}
+  input[type=text],textarea,select{width:100%;background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:12px 14px;color:var(--text);font-size:14px;outline:none;font-family:inherit}
+  input:focus,textarea:focus{border-color:var(--accent)}
+  textarea{resize:vertical;min-height:70px;line-height:1.6}
+  select{cursor:pointer}
+  .row2{display:grid;grid-template-columns:1fr 1fr;gap:12px}
+  @media(max-width:620px){.row2{grid-template-columns:1fr}}
+
+  .btn{display:inline-flex;align-items:center;gap:7px;border:1px solid var(--line);background:var(--panel2);color:var(--text);border-radius:10px;padding:11px 18px;font-size:14px;font-weight:600;cursor:pointer;font-family:inherit}
+  .btn:hover{border-color:var(--accent)}
+  .btn.primary{background:var(--accent);color:#06121f;border-color:var(--accent);font-weight:800}
+  .btn.green{background:var(--accent2);color:#06231a;border-color:var(--accent2);font-weight:800}
+  .btn:disabled{opacity:.5;cursor:wait}
+  .btnrow{display:flex;gap:10px;flex-wrap:wrap;margin-top:14px}
+
+  .ctxbox{font-size:13px;color:var(--accent2);background:rgba(57,217,138,.08);border:1px dashed rgba(57,217,138,.4);border-radius:10px;padding:10px 14px;margin-top:12px;line-height:1.6;display:none}
+  .hint{font-size:12px;color:var(--muted);line-height:1.7;margin-top:8px}
+  .hint a{color:var(--accent)}
+
+  details.aiset{margin-top:14px;border:1px solid var(--line);border-radius:10px;background:var(--panel2)}
+  details.aiset summary{cursor:pointer;padding:11px 14px;font-size:13px;color:var(--muted);font-weight:600;list-style:none}
+  details.aiset summary::before{content:'▸ '}
+  details.aiset[open] summary::before{content:'▾ '}
+  details.aiset .inner{padding:0 14px 14px}
+
+  .titlepick{display:flex;flex-direction:column;gap:8px;margin-bottom:14px}
+  .titlepick .tcand{border:1px solid var(--line);background:var(--bg);border-radius:10px;padding:11px 14px;font-size:14px;cursor:pointer;line-height:1.5}
+  .titlepick .tcand.sel{border-color:var(--accent);background:rgba(77,163,255,.08)}
+  .titlepick .tcand .no{font-size:11px;color:var(--muted);margin-right:8px}
+
+  .preview{background:#fff;color:#222;border-radius:10px;padding:26px 24px;line-height:1.8;font-size:14.5px;max-height:460px;overflow-y:auto;outline:none}
+  .preview h1{font-size:21px;margin-bottom:14px;line-height:1.4;color:#111}
+  .preview h2{font-size:17px;margin:22px 0 8px;color:#0a5cd6;display:block}
+  .preview p{margin-bottom:12px}
+  .preview .tags{color:#0a5cd6;font-size:13px;margin-top:16px}
+  .editnote{font-size:12px;color:var(--muted);margin:8px 2px}
+
+  .tplrow,.palrow{display:flex;gap:8px;flex-wrap:wrap;margin-top:6px}
+  .tplbtn{border:1px solid var(--line);background:var(--panel2);color:var(--muted);border-radius:8px;padding:8px 14px;font-size:13px;cursor:pointer;font-family:inherit}
+  .tplbtn.sel{border-color:var(--accent);color:var(--text);background:rgba(77,163,255,.12);font-weight:700}
+  .palbtn{width:34px;height:34px;border-radius:50%;cursor:pointer;border:2px solid transparent;padding:0}
+  .palbtn.sel{border-color:#fff;box-shadow:0 0 0 2px var(--accent)}
+
+  .slides{display:flex;flex-direction:column;gap:10px;margin-top:14px}
+  .slide-ed{display:grid;grid-template-columns:26px 1fr auto;gap:10px;background:var(--panel2);border:1px solid var(--line);border-radius:10px;padding:12px;align-items:start}
+  .slide-ed .num{font-size:12px;color:var(--muted);font-weight:700;padding-top:12px;text-align:center}
+  .slide-ed input{margin-bottom:8px;font-weight:700}
+  .slide-ed textarea{min-height:52px;font-size:13px}
+  .slide-ed .ops{display:flex;flex-direction:column;gap:6px}
+  .slide-ed .ops button{width:30px;height:30px;border-radius:8px;border:1px solid var(--line);background:var(--bg);color:var(--muted);cursor:pointer;font-size:13px}
+  .slide-ed .ops button:hover{color:var(--text);border-color:var(--accent)}
+
+  .cardsgrid{display:grid;grid-template-columns:repeat(auto-fill,minmax(180px,1fr));gap:14px;margin-top:18px}
+  .cardprev{position:relative}
+  .cardprev canvas{width:100%;border-radius:12px;display:block;border:1px solid var(--line)}
+  .cardprev .dl{position:absolute;right:8px;bottom:8px;background:rgba(0,0,0,.65);color:#fff;border:none;border-radius:8px;padding:6px 10px;font-size:12px;cursor:pointer}
+  .cardprev .dl:hover{background:var(--accent);color:#06121f}
+
+  .caption-box{background:var(--bg);border:1px solid var(--line);border-radius:10px;padding:14px;font-size:13.5px;line-height:1.7;white-space:pre-wrap;margin-top:10px;color:var(--text)}
+
+  #toast{position:fixed;left:50%;bottom:34px;transform:translateX(-50%) translateY(20px);background:var(--accent2);color:#06231a;font-weight:800;font-size:14px;padding:12px 22px;border-radius:99px;opacity:0;pointer-events:none;transition:all .25s;z-index:99}
+  #toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  .spin{display:inline-block;width:14px;height:14px;border:2px solid rgba(0,0,0,.3);border-top-color:#06121f;border-radius:50%;animation:sp .7s linear infinite;vertical-align:-2px}
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .err{color:#ff7d7d;font-size:13px;margin-top:10px;line-height:1.6;display:none}
+</style>
+</head>
+<body>
+<div class="wrap">
+  <header>
+    <div class="logo"><span class="dot"></span>콘텐츠 스튜디오</div>
+    <a class="backlink" href="index.html">← 트렌드 레이더로</a>
+  </header>
+
+  <!-- STEP 1 : 주제 -->
+  <div class="card">
+    <h2><span class="step">STEP 1</span> 주제 입력</h2>
+    <label class="lbl">키워드 / 주제 *</label>
+    <input type="text" id="topic" placeholder="예: 게이밍 노트북, 전기차 보조금, AI 반도체…">
+    <div class="ctxbox" id="ctxbox"></div>
+    <div class="row2">
+      <div>
+        <label class="lbl">글 스타일</label>
+        <select id="tone">
+          <option value="info">정보 정리형 (핵심 요약·존댓말)</option>
+          <option value="friendly">친근한 수다형 (이웃 소통·이모지)</option>
+          <option value="expert">전문가 분석형 (근거·전망 중심)</option>
+        </select>
+      </div>
+      <div>
+        <label class="lbl">인스타 계정명 (카드에 표시, 선택)</label>
+        <input type="text" id="handle" placeholder="@my_account">
+      </div>
+    </div>
+    <label class="lbl">추가 요청사항 (선택)</label>
+    <textarea id="memo" placeholder="예: 초보자 눈높이로, 가격 비교 위주로, 마지막에 구매 팁 넣어줘…"></textarea>
+
+    <details class="aiset" id="aiset">
+      <summary>AI 연동 설정 (키 없이도 트렌드 데이터 기반 템플릿 생성 가능)</summary>
+      <div class="inner">
+        <label class="lbl">AI 제공자</label>
+        <select id="provider">
+          <option value="none">사용 안 함 — 템플릿 자동 생성</option>
+          <option value="gemini">Google Gemini (무료 키 발급 가능)</option>
+          <option value="claude">Anthropic Claude</option>
+        </select>
+        <label class="lbl">API 키</label>
+        <input type="text" id="aikey" placeholder="API 키 붙여넣기 (이 브라우저에만 저장됩니다)">
+        <p class="hint">
+          Gemini 키: <a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio ↗</a> (무료) ·
+          Claude 키: <a href="https://console.anthropic.com/" target="_blank" rel="noopener">Anthropic Console ↗</a><br>
+          AI를 연동하면 글 품질이 크게 좋아집니다. 키가 없으면 트렌드 레이더에서 수집한 헤드라인으로 초안을 조립합니다.
+        </p>
+      </div>
+    </details>
+
+    <div class="btnrow">
+      <button class="btn primary" id="genbtn" onclick="generate()">⚡ 블로그 글 + 카드뉴스 자동 생성</button>
+    </div>
+    <div class="err" id="generr"></div>
+  </div>
+
+  <!-- STEP 2 : 블로그 -->
+  <div class="card" id="blogcard" style="display:none">
+    <h2><span class="step">STEP 2</span> 네이버 블로그 글</h2>
+    <label class="lbl">제목 후보 (클릭해서 선택)</label>
+    <div class="titlepick" id="titlepick"></div>
+    <label class="lbl">본문 미리보기 (직접 수정 가능 — 클릭해서 편집하세요)</label>
+    <div class="preview" id="preview" contenteditable="true" spellcheck="false"></div>
+    <p class="editnote">✏️ 위 내용은 자유롭게 고칠 수 있어요. 고친 내용 그대로 복사됩니다.</p>
+    <div class="btnrow">
+      <button class="btn green" onclick="copyBlogHtml()">📋 서식 포함 복사 (네이버 에디터용)</button>
+      <button class="btn" onclick="copyBlogText()">📄 텍스트만 복사</button>
+      <button class="btn" onclick="copyTags()"># 해시태그 복사</button>
+      <a class="btn" href="https://section.blog.naver.com/BlogHome.naver" target="_blank" rel="noopener">✍ 네이버 블로그 열기 ↗</a>
+    </div>
+    <p class="hint">사용법: <b>서식 포함 복사</b> → 네이버 블로그 글쓰기 → 본문에 붙여넣기(Ctrl+V) → 제목·태그 입력 후 발행. 소제목/굵기 서식이 유지됩니다.</p>
+  </div>
+
+  <!-- STEP 3 : 카드뉴스 -->
+  <div class="card" id="cardcard" style="display:none">
+    <h2><span class="step">STEP 3</span> 인스타그램 카드뉴스</h2>
+
+    <label class="lbl">디자인 템플릿</label>
+    <div class="tplrow" id="tplrow"></div>
+    <label class="lbl">색상 테마</label>
+    <div class="palrow" id="palrow"></div>
+
+    <label class="lbl" style="margin-top:16px">슬라이드 내용 (수정하면 바로 반영)</label>
+    <div class="slides" id="slides"></div>
+    <div class="btnrow">
+      <button class="btn" onclick="addSlide()">＋ 슬라이드 추가</button>
+    </div>
+
+    <label class="lbl" style="margin-top:18px">미리보기 (1080×1080px)</label>
+    <div class="cardsgrid" id="cardsgrid"></div>
+
+    <div class="btnrow">
+      <button class="btn green" onclick="downloadAll()">⬇ 전체 이미지 다운로드</button>
+      <button class="btn" onclick="copyCaption()">📋 캡션 + 해시태그 복사</button>
+    </div>
+    <label class="lbl" style="margin-top:14px">인스타 캡션</label>
+    <div class="caption-box" id="captionbox"></div>
+    <p class="hint">사용법: <b>전체 이미지 다운로드</b> → 인스타그램 새 게시물에서 순서대로 선택 → <b>캡션 복사</b> 내용 붙여넣기 → 게시.
+    휴대폰에서는 이 페이지를 열어 같은 방법으로 저장하면 됩니다.</p>
+  </div>
+</div>
+
+<div id="toast"></div>
+
+<script>
+const $=id=>document.getElementById(id);
+let gen=null;          // {titles, intro, sections, outro, hashtags, caption, cards}
+let slides=[];         // [{title, body}]
+let selTitle=0, selTpl='grad', selPal=0;
+let ctx=null;          // 트렌드 레이더 수집 데이터
+
+/* ---------- 초기화 ---------- */
+(function init(){
+  const p=new URLSearchParams(location.search);
+  const q=p.get('q');
+  try{ ctx=JSON.parse(localStorage.getItem('studio_ctx')); }catch(e){ ctx=null; }
+  if(ctx && Date.now()-(ctx.at||0) > 7*86400000) ctx=null;  // 일주일 지난 데이터는 무시
+  if(q) $('topic').value=q;
+  else if(ctx&&ctx.q) $('topic').value=ctx.q;
+  if(ctx&&ctx.items&&ctx.items.length){
+    $('ctxbox').style.display='block';
+    $('ctxbox').innerHTML=`📡 트렌드 레이더 수집 데이터 연동됨 — <b>"${esc(ctx.q)}"</b> 관련 ${ctx.items.length}건의 뉴스·커뮤니티 반응을 글 재료로 사용합니다.`;
+  }
+  $('provider').value=localStorage.getItem('ai_provider')||'none';
+  $('aikey').value=localStorage.getItem('ai_key')||'';
+  $('handle').value=localStorage.getItem('insta_handle')||'';
+  if($('provider').value!=='none') $('aiset').open=true;
+})();
+
+/* ---------- 생성 ---------- */
+async function generate(){
+  const topic=$('topic').value.trim();
+  if(!topic){ toast('키워드를 입력해 주세요'); $('topic').focus(); return; }
+  const provider=$('provider').value, key=$('aikey').value.trim();
+  localStorage.setItem('ai_provider',provider);
+  localStorage.setItem('ai_key',key);
+  localStorage.setItem('insta_handle',$('handle').value.trim());
+  $('generr').style.display='none';
+  const btn=$('genbtn');
+  btn.disabled=true;
+  btn.innerHTML='<span class="spin"></span> 생성 중… (10~30초)';
+  try{
+    if(provider!=='none'&&key){
+      try{ gen=await genAI(provider,key,topic); }
+      catch(e){
+        console.warn(e);
+        showErr('AI 호출에 실패해 템플릿 생성으로 대체했습니다: '+(e.message||e));
+        gen=genTemplate(topic);
+      }
+    }else{
+      gen=genTemplate(topic);
+    }
+    selTitle=0;
+    slides=gen.cards.map(c=>({title:c.title||'',body:c.body||''}));
+    renderBlog(); renderCardUI();
+    $('blogcard').style.display='block';
+    $('cardcard').style.display='block';
+    $('blogcard').scrollIntoView({behavior:'smooth'});
+    toast('생성 완료!');
+  }finally{
+    btn.disabled=false;
+    btn.innerHTML='⚡ 블로그 글 + 카드뉴스 자동 생성';
+  }
+}
+function showErr(m){ $('generr').textContent=m; $('generr').style.display='block'; }
+
+/* ---------- AI 생성 ---------- */
+function buildPrompt(topic){
+  const tone={
+    info:'정보 정리형: 핵심을 깔끔하게 요약, 정중한 존댓말, 소제목마다 번호',
+    friendly:'친근한 수다형: 블로그 이웃에게 말하듯 편안한 존댓말, 이모지 적절히 사용',
+    expert:'전문가 분석형: 데이터와 근거 중심, 향후 전망 포함, 신뢰감 있는 문체'
+  }[$('tone').value];
+  const memo=$('memo').value.trim();
+  let heads='';
+  if(ctx&&ctx.items&&ctx.items.length){
+    heads='\n최근 수집된 관련 이슈 헤드라인 (글 재료로 활용):\n'+ctx.items.slice(0,20).map(i=>'- '+i.title).join('\n');
+  }
+  return `당신은 네이버 블로그 상위노출 글과 인스타그램 카드뉴스를 만드는 한국어 콘텐츠 전문가입니다.
+
+주제: ${topic}
+문체: ${tone}${memo?'\n추가 요청: '+memo:''}${heads}
+
+아래 JSON 형식으로만 응답하세요. JSON 외 다른 텍스트, 마크다운 코드블록 없이 순수 JSON만 출력하세요.
+{
+ "titles": ["검색 노출에 유리한 블로그 제목 후보 3개 (핵심 키워드 포함, 25자 내외)"],
+ "intro": "도입 문단 (2~4문장, 독자의 궁금증 자극)",
+ "sections": [{"heading":"소제목","paragraphs":["문단1","문단2"]}],
+ "outro": "마무리 문단 (요약 + 다음 글 예고 느낌)",
+ "hashtags": ["#태그1"],
+ "caption": "인스타그램 캡션 (3~5문장, 이모지 포함, 마지막에 저장/팔로우 유도)",
+ "cards": [{"title":"카드 제목 (15자 이내)","body":"카드 본문 (55자 이내, 줄바꿈은 \\n)"}]
+}
+
+조건:
+- sections는 3~5개, 본문 전체 1500~2500자, 문단은 3~4문장으로 짧게.
+- hashtags는 12~15개 (주제 연관 + 인기 태그 조합).
+- cards는 7장: 1장=표지(주제를 한 문장 후킹으로), 2~6장=핵심 내용 요약, 7장=팔로우/저장 유도 마무리.
+- 사실을 지어내지 말고, 제공된 헤드라인이 있으면 그 내용을 우선 활용하세요.`;
+}
+async function genAI(provider,key,topic){
+  const prompt=buildPrompt(topic);
+  const raw = provider==='gemini' ? await callGemini(key,prompt) : await callClaude(key,prompt);
+  const j=parseJSON(raw);
+  if(!j||!j.titles||!j.sections||!j.cards) throw new Error('AI 응답 형식 오류');
+  j.hashtags=(j.hashtags||[]).map(t=>t.startsWith('#')?t:'#'+t);
+  return j;
+}
+async function callGemini(key,prompt){
+  const models=['gemini-2.5-flash','gemini-2.0-flash','gemini-1.5-flash'];
+  let lastErr='';
+  for(const m of models){
+    const r=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${m}:generateContent?key=${encodeURIComponent(key)}`,{
+      method:'POST',headers:{'Content-Type':'application/json'},
+      body:JSON.stringify({contents:[{parts:[{text:prompt}]}],generationConfig:{temperature:0.8,maxOutputTokens:8000}})
+    });
+    if(r.ok){
+      const j=await r.json();
+      const t=j.candidates?.[0]?.content?.parts?.map(p=>p.text).join('');
+      if(t) return t;
+      lastErr='빈 응답';
+    }else{
+      lastErr='HTTP '+r.status;
+      if(r.status===400||r.status===401||r.status===403) break; // 키 문제면 모델 바꿔도 소용없음
+    }
+  }
+  throw new Error('Gemini: '+lastErr);
+}
+async function callClaude(key,prompt){
+  const r=await fetch('https://api.anthropic.com/v1/messages',{
+    method:'POST',
+    headers:{
+      'content-type':'application/json',
+      'x-api-key':key,
+      'anthropic-version':'2023-06-01',
+      'anthropic-dangerous-direct-browser-access':'true'
+    },
+    body:JSON.stringify({model:'claude-sonnet-5',max_tokens:6000,messages:[{role:'user',content:prompt}]})
+  });
+  if(!r.ok) throw new Error('Claude: HTTP '+r.status);
+  const j=await r.json();
+  return (j.content||[]).filter(c=>c.type==='text').map(c=>c.text).join('');
+}
+function parseJSON(raw){
+  let s=String(raw).replace(/```json|```/g,'').trim();
+  const a=s.indexOf('{'), b=s.lastIndexOf('}');
+  if(a<0||b<0) return null;
+  try{ return JSON.parse(s.slice(a,b+1)); }catch(e){ return null; }
+}
+
+/* ---------- 템플릿 생성 (AI 미사용) ---------- */
+function genTemplate(topic){
+  const now=new Date();
+  const ym=`${now.getFullYear()}년 ${now.getMonth()+1}월`;
+  const useCtx = ctx&&ctx.items&&ctx.items.length ? ctx.items : [];
+  const heads=useCtx.map(i=>cleanHead(i.title)).filter(t=>t.length>5);
+  const top=uniq(heads).slice(0,8);
+  const friendly=$('tone').value==='friendly';
+
+  const sections=[];
+  if(top.length){
+    sections.push({heading:`1. 지금 "${topic}" 관련 핵심 이슈`,
+      paragraphs:[`최근 뉴스와 커뮤니티에서 가장 많이 언급된 소식들을 먼저 정리해 볼게요.`,
+        ...top.slice(0,5).map((t,i)=>`✔ ${t}`)]});
+    const detail=useCtx.filter(i=>i.desc&&i.desc.length>30).slice(0,3);
+    if(detail.length){
+      sections.push({heading:`2. 조금 더 자세히 살펴보면`,
+        paragraphs:detail.map(d=>`「${cleanHead(d.title)}」 — ${d.desc.slice(0,150)}…`)});
+    }
+    sections.push({heading:`${detail.length?3:2}. 정리 및 체크포인트`,
+      paragraphs:[`${topic} 관련 소식은 위처럼 빠르게 움직이고 있습니다. 관심 있으신 분들은 관련 키워드 알림을 걸어두시면 좋아요.`,
+        `새로운 소식이 나오면 이 블로그에서 계속 업데이트하겠습니다.`]});
+  }else{
+    sections.push({heading:`1. ${topic}, 왜 지금 주목받을까?`,
+      paragraphs:[`최근 ${topic}에 대한 관심이 부쩍 늘고 있습니다. 검색량과 커뮤니티 언급이 눈에 띄게 증가하는 추세인데요.`,
+        `오늘은 ${topic}에 대해 꼭 알아야 할 내용을 정리해 보겠습니다.`]});
+    sections.push({heading:`2. 핵심 포인트 정리`,
+      paragraphs:[`(여기에 ${topic}의 핵심 내용을 채워 주세요 — 트렌드 레이더에서 "${topic}"을 먼저 검색하면 수집된 뉴스로 이 부분이 자동으로 채워집니다.)`]});
+    sections.push({heading:`3. 마무리`,
+      paragraphs:[`${topic} 관련해서 궁금한 점은 댓글로 남겨주세요. 다음 글에서 더 자세히 다뤄보겠습니다.`]});
+  }
+
+  const kwTags=topic.split(/\s+/).filter(Boolean).map(w=>'#'+w.replace(/[^\w가-힣]/g,''));
+  const hashtags=uniq([...kwTags,`#${topic.replace(/\s+/g,'')}`,'#트렌드','#최신이슈','#정보공유','#오늘의이슈','#핫이슈','#일상','#소통','#팔로우','#데일리뉴스','#정보블로그']).filter(t=>t.length>1).slice(0,15);
+
+  const cards=[
+    {title:topic, body:`지금 가장 뜨거운 이슈\n한 장씩 넘겨보세요 👉`},
+    ...(top.length?top.slice(0,5).map((t,i)=>({title:`핵심 ${i+1}`, body:shorten(t,55)}))
+      :[{title:'핵심 1',body:`${topic} 관련 첫 번째 포인트를 입력하세요`},
+        {title:'핵심 2',body:'두 번째 포인트를 입력하세요'},
+        {title:'핵심 3',body:'세 번째 포인트를 입력하세요'}]),
+    {title:'도움되셨나요?', body:`저장🔖하고 나중에 다시 보기\n팔로우하면 매일 트렌드가 도착해요`}
+  ];
+
+  return {
+    titles:[
+      `${topic} 최신 이슈 총정리 (${ym})`,
+      `요즘 ${topic} 왜 화제일까? 핵심만 모았습니다`,
+      `${ym} ${topic} 소식, 이 글 하나로 끝`
+    ],
+    intro:friendly
+      ?`안녕하세요! 요즘 ${topic} 이야기가 정말 많이 들리죠? 😊 저도 궁금해서 최근 소식을 싹 모아봤는데요, 오늘 한 번에 정리해 드릴게요.`
+      :`최근 ${topic}에 대한 관심이 크게 높아지고 있습니다. 이번 글에서는 ${ym} 기준 ${topic} 관련 주요 이슈를 한눈에 볼 수 있도록 정리했습니다.`,
+    sections,
+    outro:friendly
+      ?`오늘 정리한 내용이 도움이 되셨다면 공감❤️과 이웃추가 부탁드려요! 새로운 소식 나오면 또 들고 올게요 🙌`
+      :`이상으로 ${topic} 관련 최신 동향을 정리해 보았습니다. 도움이 되셨다면 공감과 이웃추가 부탁드리며, 새로운 소식은 빠르게 업데이트하겠습니다.`,
+    hashtags,
+    caption:`${topic}, 요즘 왜 이렇게 화제인지 아시나요? 👀\n지금 꼭 알아야 할 핵심만 카드 ${cards.length}장에 담았습니다.\n한 장씩 넘겨보시고, 나중에 다시 보려면 저장🔖 해두세요!\n매일 트렌드 소식이 궁금하다면 팔로우 🙌`,
+    cards
+  };
+}
+function cleanHead(t){ return String(t).replace(/\s*[-|–]\s*[^-|–]{2,25}$/,'').trim(); }
+function shorten(t,n){ return t.length>n?t.slice(0,n-1)+'…':t; }
+function uniq(a){ return [...new Set(a)]; }
+
+/* ---------- 블로그 렌더 ---------- */
+function renderBlog(){
+  $('titlepick').innerHTML=gen.titles.map((t,i)=>
+    `<div class="tcand ${i===selTitle?'sel':''}" onclick="pickTitle(${i})"><span class="no">${i+1}안</span>${esc(t)}</div>`).join('');
+  $('preview').innerHTML=blogHTML();
+}
+function pickTitle(i){
+  // 미리보기 h1만 교체 (본문 편집 내용 보존)
+  selTitle=i;
+  document.querySelectorAll('.tcand').forEach((el,k)=>el.classList.toggle('sel',k===i));
+  const h1=$('preview').querySelector('h1');
+  if(h1) h1.textContent=gen.titles[i];
+}
+function blogHTML(){
+  const secs=gen.sections.map(s=>
+    `<h2>${esc(s.heading)}</h2>`+s.paragraphs.map(p=>`<p>${esc(p)}</p>`).join('')).join('');
+  return `<h1>${esc(gen.titles[selTitle])}</h1><p>${esc(gen.intro)}</p>${secs}<p>${esc(gen.outro)}</p><p class="tags">${esc(gen.hashtags.join(' '))}</p>`;
+}
+async function copyBlogHtml(){
+  const el=$('preview');
+  const html=`<div>${el.innerHTML}</div>`;
+  try{
+    await navigator.clipboard.write([new ClipboardItem({
+      'text/html':new Blob([html],{type:'text/html'}),
+      'text/plain':new Blob([el.innerText],{type:'text/plain'})
+    })]);
+    toast('서식 포함 복사 완료! 네이버 에디터에 붙여넣으세요');
+  }catch(e){
+    await navigator.clipboard.writeText(el.innerText);
+    toast('이 브라우저는 서식 복사가 안 되어 텍스트로 복사했어요');
+  }
+}
+async function copyBlogText(){
+  await navigator.clipboard.writeText($('preview').innerText);
+  toast('텍스트 복사 완료!');
+}
+async function copyTags(){
+  await navigator.clipboard.writeText(gen.hashtags.join(' '));
+  toast('해시태그 복사 완료!');
+}
+
+/* ---------- 카드뉴스 ---------- */
+const TPLS=[['grad','그라데이션'],['minimal','미니멀 화이트'],['dark','다크 프레임']];
+const PALETTES=[
+  {name:'오션',   c1:'#0d3b78', c2:'#4da3ff', txt:'#ffffff', sub:'#cde4ff', ink:'#0d3b78'},
+  {name:'선셋',   c1:'#8a2b53', c2:'#ff8a5c', txt:'#ffffff', sub:'#ffe1d1', ink:'#8a2b53'},
+  {name:'포레스트',c1:'#0e4f38', c2:'#39d98a', txt:'#ffffff', sub:'#d2f5e3', ink:'#0e4f38'},
+  {name:'퍼플',   c1:'#3d2b7a', c2:'#b18cff', txt:'#ffffff', sub:'#e6dbff', ink:'#3d2b7a'},
+  {name:'모노',   c1:'#15181e', c2:'#5b6a7d', txt:'#ffffff', sub:'#c6cfdd', ink:'#15181e'},
+];
+function renderCardUI(){
+  $('tplrow').innerHTML=TPLS.map(([k,n])=>
+    `<button class="tplbtn ${k===selTpl?'sel':''}" onclick="setTpl('${k}')">${n}</button>`).join('');
+  $('palrow').innerHTML=PALETTES.map((p,i)=>
+    `<button class="palbtn ${i===selPal?'sel':''}" title="${p.name}" style="background:linear-gradient(135deg,${p.c1},${p.c2})" onclick="setPal(${i})"></button>`).join('');
+  renderSlideEditors();
+  renderCards();
+  $('captionbox').textContent=gen.caption+'\n\n'+gen.hashtags.join(' ');
+}
+function setTpl(k){ selTpl=k; renderCardUI(); }
+function setPal(i){ selPal=i; renderCardUI(); }
+function renderSlideEditors(){
+  $('slides').innerHTML=slides.map((s,i)=>`
+    <div class="slide-ed">
+      <div class="num">${i+1}</div>
+      <div>
+        <input type="text" value="${esc(s.title)}" oninput="slides[${i}].title=this.value;renderCards()" placeholder="카드 제목">
+        <textarea oninput="slides[${i}].body=this.value;renderCards()" placeholder="카드 본문">${esc(s.body)}</textarea>
+      </div>
+      <div class="ops">
+        <button title="위로" onclick="moveSlide(${i},-1)">↑</button>
+        <button title="아래로" onclick="moveSlide(${i},1)">↓</button>
+        <button title="삭제" onclick="delSlide(${i})">✕</button>
+      </div>
+    </div>`).join('');
+}
+function moveSlide(i,d){
+  const j=i+d;
+  if(j<0||j>=slides.length) return;
+  [slides[i],slides[j]]=[slides[j],slides[i]];
+  renderSlideEditors(); renderCards();
+}
+function delSlide(i){ slides.splice(i,1); renderSlideEditors(); renderCards(); }
+function addSlide(){ slides.push({title:'새 카드',body:'내용을 입력하세요'}); renderSlideEditors(); renderCards(); }
+
+let renderTimer=null;
+function renderCards(){
+  clearTimeout(renderTimer);
+  renderTimer=setTimeout(()=>{
+    const grid=$('cardsgrid');
+    grid.innerHTML=slides.map((s,i)=>`
+      <div class="cardprev">
+        <canvas id="cv${i}" width="1080" height="1080"></canvas>
+        <button class="dl" onclick="downloadOne(${i})">⬇ PNG</button>
+      </div>`).join('');
+    slides.forEach((s,i)=>drawSlide($('cv'+i).getContext('2d'),s,i,slides.length));
+  },120);
+}
+
+/* ---------- 캔버스 드로잉 ---------- */
+const F='Pretendard,"Apple SD Gothic Neo","Malgun Gothic",sans-serif';
+function drawSlide(c,s,i,total){
+  const pal=PALETTES[selPal];
+  const W=1080,H=1080;
+  const cover=(i===0), outro=(i===total-1&&total>2);
+  const kw=$('topic').value.trim();
+  const handle=$('handle').value.trim();
+  c.clearRect(0,0,W,H);
+
+  if(selTpl==='grad'){
+    const g=c.createLinearGradient(0,0,W,H);
+    g.addColorStop(0,pal.c1); g.addColorStop(1,pal.c2);
+    c.fillStyle=g; c.fillRect(0,0,W,H);
+    c.globalAlpha=.10; c.fillStyle='#ffffff';
+    circle(c,W-120,140,190); circle(c,90,H-110,150);
+    c.globalAlpha=1;
+    drawContent(c,s,i,total,{txt:pal.txt,sub:pal.sub,chipBg:'rgba(255,255,255,.18)',chipTx:pal.txt},cover,outro,kw,handle);
+  }
+  else if(selTpl==='minimal'){
+    c.fillStyle='#ffffff'; c.fillRect(0,0,W,H);
+    c.fillStyle=pal.c2; c.fillRect(0,0,W,26);
+    c.fillStyle=pal.c1; c.fillRect(84,cover?300:250,10,cover?190:120);
+    drawContent(c,s,i,total,{txt:'#1c2330',sub:'#5a6577',chipBg:hexA(pal.c2,.16),chipTx:pal.ink},cover,outro,kw,handle,120);
+  }
+  else{ // dark
+    c.fillStyle='#101318'; c.fillRect(0,0,W,H);
+    c.strokeStyle=pal.c2; c.lineWidth=6;
+    c.strokeRect(46,46,W-92,H-92);
+    c.fillStyle=pal.c2; c.fillRect(84,cover?300:250,10,cover?190:120);
+    drawContent(c,s,i,total,{txt:'#f2f5fa',sub:'#aab6c8',chipBg:hexA(pal.c2,.2),chipTx:pal.c2},cover,outro,kw,handle,120);
+  }
+}
+function drawContent(c,s,i,total,col,cover,outro,kw,handle,x0){
+  const W=1080,H=1080,X=x0||84;
+  // 상단 키워드 칩
+  if(kw){
+    c.font='600 30px '+F;
+    const w=c.measureText(kw).width+56;
+    rr(c,X,96,w,64,32); c.fillStyle=col.chipBg; c.fill();
+    c.fillStyle=col.chipTx;
+    c.textBaseline='middle'; c.textAlign='left';
+    c.fillText(kw,X+28,96+34);
+  }
+  // 제목
+  const tSize=cover?86:66;
+  const tLines=fit(c,s.title,'800',tSize,W-X*2,cover?4:3);
+  c.fillStyle=col.txt; c.textBaseline='top'; c.textAlign='left';
+  let y=cover?330:280;
+  c.font=`800 ${tLines.size}px ${F}`;
+  tLines.lines.forEach(l=>{ c.fillText(l,X+(x0?40:0),y); y+=tLines.size*1.32; });
+  // 본문
+  y+=cover?46:38;
+  const bLines=fit(c,s.body,'500',cover?44:46,W-X*2-(x0?40:0),8);
+  c.font=`500 ${bLines.size}px ${F}`;
+  c.fillStyle=col.sub;
+  bLines.lines.forEach(l=>{ c.fillText(l,X+(x0?40:0),y); y+=bLines.size*1.5; });
+  // 표지 스와이프 힌트
+  if(cover){
+    c.font='700 34px '+F; c.fillStyle=col.sub; c.textAlign='right';
+    c.fillText('밀어서 보기 →',W-X,H-180);
+  }
+  // 하단: 계정명 + 페이지
+  c.font='600 30px '+F; c.textBaseline='alphabetic';
+  if(handle){ c.textAlign='left'; c.fillStyle=col.sub; c.fillText(handle,X,H-92); }
+  c.textAlign='right'; c.fillStyle=col.sub;
+  c.fillText(`${i+1} / ${total}`,W-X,H-92);
+  c.textAlign='left';
+}
+function fit(c,text,weight,size,maxW,maxLines){
+  let s=size;
+  while(s>26){
+    c.font=`${weight} ${s}px ${F}`;
+    const lines=wrap(c,text,maxW);
+    if(lines.length<=maxLines) return {size:s,lines};
+    s-=4;
+  }
+  c.font=`${weight} ${s}px ${F}`;
+  return {size:s,lines:wrap(c,text,maxW).slice(0,maxLines)};
+}
+function wrap(c,text,maxW){
+  const out=[];
+  for(const para of String(text||'').split(/\n/)){
+    let line='';
+    for(const tk of para.split(/(\s+)/)){
+      if(c.measureText(line+tk).width<=maxW){ line+=tk; continue; }
+      if(line.trim()) out.push(line.trimEnd());
+      line='';
+      if(c.measureText(tk).width<=maxW){ line=tk.trimStart(); }
+      else{
+        for(const ch of tk){
+          if(c.measureText(line+ch).width>maxW){ out.push(line); line=ch; }
+          else line+=ch;
+        }
+      }
+    }
+    out.push(line.trimEnd());
+  }
+  return out.filter((l,i,a)=>l!==''||i<a.length-1);
+}
+function circle(c,x,y,r){ c.beginPath(); c.arc(x,y,r,0,7); c.fill(); }
+function rr(c,x,y,w,h,r){
+  c.beginPath();
+  c.moveTo(x+r,y); c.arcTo(x+w,y,x+w,y+h,r); c.arcTo(x+w,y+h,x,y+h,r);
+  c.arcTo(x,y+h,x,y,r); c.arcTo(x,y,x+w,y,r); c.closePath();
+}
+function hexA(hex,a){
+  const n=parseInt(hex.slice(1),16);
+  return `rgba(${n>>16&255},${n>>8&255},${n&255},${a})`;
+}
+
+/* ---------- 다운로드 ---------- */
+function fileBase(){
+  return ($('topic').value.trim()||'card').replace(/[^\w가-힣]+/g,'_').slice(0,30);
+}
+function downloadOne(i){
+  $('cv'+i).toBlob(b=>{
+    const a=document.createElement('a');
+    a.href=URL.createObjectURL(b);
+    a.download=`${fileBase()}_${String(i+1).padStart(2,'0')}.png`;
+    a.click();
+    setTimeout(()=>URL.revokeObjectURL(a.href),3000);
+  },'image/png');
+}
+async function downloadAll(){
+  for(let i=0;i<slides.length;i++){
+    downloadOne(i);
+    await new Promise(r=>setTimeout(r,400));
+  }
+  toast(`${slides.length}장 다운로드 시작! 다운로드 폴더를 확인하세요`);
+}
+async function copyCaption(){
+  await navigator.clipboard.writeText($('captionbox').textContent);
+  toast('캡션 + 해시태그 복사 완료!');
+}
+
+/* ---------- 유틸 ---------- */
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+let toastTimer=null;
+function toast(m){
+  const t=$('toast');
+  t.textContent=m; t.classList.add('on');
+  clearTimeout(toastTimer);
+  toastTimer=setTimeout(()=>t.classList.remove('on'),2600);
+}
+</script>
+</body>
+</html>
