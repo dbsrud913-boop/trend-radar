@@ -1,0 +1,508 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>전략 프로젝트 — 트렌드 레이더</title>
+<style>
+  :root{
+    --bg:#F7F6FB; --panel:#FFFFFF; --panel2:#F1EEF9; --line:#E4E0F0;
+    --text:#1D1930; --muted:#6F6885; --faint:#9A94AE;
+    --brand:#6C4EE0; --brand-strong:#5638CE; --brand-soft:#EEE9FC; --brand-line:#D6CCF5;
+    --ok:#1F9D6D; --ok-soft:#E3F5EE; --warn:#A66B00; --warn-soft:#FBF1DC;
+    --shadow:0 1px 2px rgba(28,22,58,.05), 0 10px 28px -14px rgba(28,22,58,.14);
+  }
+  @media (prefers-color-scheme: dark){
+    :root{
+      --bg:#131020; --panel:#1B1730; --panel2:#241E3D; --line:#322A52;
+      --text:#EDEAF7; --muted:#A49CC0; --faint:#7D7599;
+      --brand:#9D87F2; --brand-strong:#B4A2F7; --brand-soft:#2A2250; --brand-line:#453A73;
+      --ok:#4CC79A; --ok-soft:#1D3A31; --warn:#E0B15E; --warn-soft:#3A311D;
+      --shadow:none;
+    }
+  }
+  *{box-sizing:border-box;margin:0;padding:0}
+  html{-webkit-text-size-adjust:100%}
+  body{background:var(--bg);color:var(--text);font-family:'Pretendard','Apple SD Gothic Neo','Malgun Gothic',system-ui,sans-serif;min-height:100vh;line-height:1.55;word-break:keep-all;overflow-wrap:break-word}
+  a{color:inherit;text-decoration:none}
+  button{font-family:inherit;cursor:pointer}
+  .wrap{max-width:780px;margin:0 auto;padding:20px 18px 90px}
+
+  /* ---- 공통 헤더 ---- */
+  .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:10px}
+  .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.4px}
+  .brand .mark{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand-strong));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800}
+  .topbar .back{font-size:13px;color:var(--muted);border:1px solid var(--line);background:var(--panel);padding:7px 13px;border-radius:9px;white-space:nowrap}
+  .topbar .back:hover{color:var(--text);border-color:var(--brand-line)}
+
+  h1{font-size:24px;font-weight:800;letter-spacing:-.6px;text-wrap:balance}
+  .sub{font-size:14px;color:var(--muted);margin-top:5px}
+  .cnt-num{font-variant-numeric:tabular-nums}
+
+  /* ---- 버튼 ---- */
+  .btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:11px;font-size:14px;font-weight:700;padding:12px 20px;background:var(--brand);color:#fff;transition:background .15s}
+  .btn:hover{background:var(--brand-strong)}
+  .btn.ghost{background:var(--panel);color:var(--muted);border:1px solid var(--line);font-weight:600}
+  .btn.ghost:hover{color:var(--text);border-color:var(--brand-line);background:var(--panel)}
+  .btn.small{padding:8px 14px;font-size:13px;border-radius:9px}
+  .btn:focus-visible,.chip-st:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+
+  /* ---- 목록 ---- */
+  .listhead{display:flex;gap:10px;margin:18px 0 20px}
+  .listhead input{flex:1;min-width:0;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 16px;font-size:15px;color:var(--text);outline:none}
+  .listhead input:focus{border-color:var(--brand)}
+  .pcard{display:block;background:var(--panel);border:1px solid var(--line);border-radius:15px;padding:18px 20px;margin-bottom:12px;box-shadow:var(--shadow);transition:border-color .15s;position:relative}
+  .pcard:hover{border-color:var(--brand-line)}
+  .pcard h3{font-size:16px;font-weight:700;letter-spacing:-.3px;padding-right:60px}
+  .pcard .meta{display:flex;flex-wrap:wrap;gap:6px;margin-top:9px}
+  .tag{font-size:12px;color:var(--muted);background:var(--panel2);border-radius:7px;padding:3px 9px}
+  .tag.kw{color:var(--brand);background:var(--brand-soft)}
+  .pcard .foot{display:flex;align-items:center;justify-content:space-between;margin-top:13px;font-size:12px;color:var(--faint)}
+  .progress{display:flex;align-items:center;gap:8px}
+  .pbar{width:90px;height:5px;border-radius:99px;background:var(--panel2);overflow:hidden}
+  .pbar i{display:block;height:100%;background:var(--brand);border-radius:99px}
+  .pcard .del{position:absolute;top:14px;right:14px;font-size:12px;color:var(--faint);background:none;border:none;padding:6px}
+  .pcard .del:hover{color:#d05555}
+
+  .emptybox{border:1.5px dashed var(--brand-line);border-radius:18px;padding:56px 24px;text-align:center;margin-top:8px}
+  .emptybox .ico{width:56px;height:56px;border-radius:50%;background:var(--brand-soft);color:var(--brand);display:inline-flex;align-items:center;justify-content:center;margin-bottom:16px}
+  .emptybox h3{font-size:17px;font-weight:700;margin-bottom:7px}
+  .emptybox p{font-size:14px;color:var(--muted);margin-bottom:22px}
+
+  /* ---- 폼 ---- */
+  .card{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:24px 22px;margin-bottom:16px;box-shadow:var(--shadow)}
+  .card h2{font-size:16px;font-weight:800;letter-spacing:-.3px}
+  .card .desc{font-size:13px;color:var(--muted);margin-top:4px;margin-bottom:18px}
+  label{display:block;font-size:14px;font-weight:700;margin:16px 0 7px}
+  label .req{color:var(--brand)}
+  label .opt{font-weight:500;color:var(--faint);font-size:12px;margin-left:4px}
+  input[type=text],textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 15px;font-size:15px;color:var(--text);outline:none;font-family:inherit}
+  input[type=text]:focus,textarea:focus{border-color:var(--brand)}
+  textarea{min-height:96px;resize:vertical;line-height:1.6}
+  ::placeholder{color:var(--faint)}
+  .formactions{display:flex;gap:10px;margin:6px 0 18px}
+  .hint{font-size:12.5px;color:var(--faint);margin-top:6px;line-height:1.6}
+
+  /* ---- 프로젝트 상세 ---- */
+  .phead{margin-bottom:18px}
+  .phead .crumb{font-size:13px;color:var(--muted);margin-bottom:10px;display:inline-block}
+  .phead .crumb:hover{color:var(--brand)}
+  .phead .row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
+  .statline{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--muted)}
+  .statline .pbar{width:150px;height:6px}
+
+  .stepnav{display:flex;gap:7px;margin:16px 0 20px;overflow-x:auto;padding-bottom:4px}
+  .stepnav a{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 13px}
+  .stepnav a.done{color:var(--ok);background:var(--ok-soft);border-color:transparent}
+  .stepnav a b{font-variant-numeric:tabular-nums;font-weight:800}
+
+  .stepcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden}
+  .stepcard.open{border-color:var(--brand-line)}
+  .stephead{display:flex;align-items:center;gap:13px;padding:17px 18px;cursor:pointer;background:none;border:none;width:100%;text-align:left;color:inherit}
+  .stepno{width:32px;height:32px;border-radius:50%;background:var(--panel2);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:13px;font-weight:800;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .stepcard.done .stepno{background:var(--ok);color:#fff}
+  .stepcard.doing .stepno{background:var(--brand);color:#fff}
+  .stephead .tt{flex:1;min-width:0}
+  .stephead .tt h3{font-size:15.5px;font-weight:700;letter-spacing:-.3px}
+  .stephead .tt p{font-size:12.5px;color:var(--muted);margin-top:2px}
+  .stbadge{font-size:11.5px;font-weight:700;padding:4px 10px;border-radius:99px;background:var(--panel2);color:var(--muted);flex-shrink:0}
+  .stbadge.done{background:var(--ok-soft);color:var(--ok)}
+  .stbadge.doing{background:var(--brand-soft);color:var(--brand)}
+  .stepbody{padding:0 18px 20px;border-top:1px solid var(--line)}
+  .purpose{font-size:13.5px;color:var(--muted);background:var(--brand-soft);border-radius:11px;padding:12px 15px;margin-top:16px;line-height:1.65}
+  .purpose b{color:var(--brand)}
+  .toolrow{display:flex;flex-wrap:wrap;gap:8px;margin-top:14px}
+  .stchips{display:flex;gap:6px;margin-top:16px}
+  .chip-st{font-size:12.5px;font-weight:600;padding:7px 14px;border-radius:99px;border:1px solid var(--line);background:var(--panel);color:var(--muted)}
+  .chip-st.on{background:var(--brand);border-color:var(--brand);color:#fff}
+  .savemark{font-size:12px;color:var(--ok);margin-left:auto;align-self:center;opacity:0;transition:opacity .3s}
+  .savemark.show{opacity:1}
+
+  /* ---- 리포트 ---- */
+  .reportbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
+  .report{background:var(--panel);border:1px solid var(--line);border-radius:18px;padding:38px 34px;box-shadow:var(--shadow)}
+  .report .eyebrow{font-size:11.5px;font-weight:700;letter-spacing:.14em;color:var(--brand)}
+  .report h1{font-size:26px;margin-top:8px}
+  .report .rsub{font-size:14px;color:var(--muted);margin-top:6px}
+  .rmeta{display:flex;flex-wrap:wrap;gap:26px;margin:22px 0;padding-bottom:20px;border-bottom:2px solid var(--text)}
+  .rmeta div span{display:block;font-size:11.5px;color:var(--faint);margin-bottom:3px}
+  .rmeta div b{font-size:13.5px;font-weight:700}
+  .rquote{border-left:3px solid var(--brand);background:var(--brand-soft);border-radius:0 11px 11px 0;padding:15px 18px;font-size:14px;line-height:1.7;margin:20px 0}
+  .rquote .qt{font-size:11.5px;font-weight:800;letter-spacing:.12em;color:var(--brand);display:block;margin-bottom:6px}
+  .rsec{margin-top:30px}
+  .rsec h2{font-size:16.5px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:baseline;gap:9px}
+  .rsec h2 .no{color:var(--brand);font-size:13px;font-variant-numeric:tabular-nums}
+  .rsec .rbody{font-size:14px;line-height:1.75;margin-top:10px;white-space:pre-wrap;word-break:break-word}
+  .rsec .rempty{font-size:13px;color:var(--faint);margin-top:8px;font-style:normal}
+
+  @media (max-width:560px){
+    .report{padding:26px 20px}
+    .formactions{flex-wrap:wrap}
+  }
+  @media print{
+    :root{--bg:#fff;--panel:#fff;--panel2:#f3f1f8;--line:#ddd;--text:#111;--muted:#555;--faint:#888;--brand:#5638CE;--brand-soft:#f1edfc;--brand-line:#ccc;--shadow:none}
+    body{background:#fff}
+    .topbar,.reportbar,.noprint{display:none!important}
+    .wrap{max-width:100%;padding:0}
+    .report{border:none;box-shadow:none;padding:0}
+    .rsec{break-inside:avoid-page}
+  }
+</style>
+</head>
+<body>
+<div class="wrap" id="app"></div>
+
+<script>
+const $=s=>document.querySelector(s);
+const STORE='tr_strategy_projects_v1';
+
+/* ---------- 5단계 프레임워크 정의 ---------- */
+const STEPS=[
+  {key:'market', name:'시장조사', desc:'시장 규모, 트렌드, 고객 세그먼트 파악',
+   purpose:'시장 규모, 성장 동력, 고객 세그먼트, 미충족 수요를 객관적으로 파악해 전략의 출발점을 확립합니다.',
+   deliver:'시장 정의와 규모(TAM/SAM/SOM), 핵심 성장 동인과 저해 요인, 고객 세그먼트별 미충족 수요(JTBD), 주요 트렌드와 자사 강점의 결합 포인트'},
+  {key:'compete', name:'경쟁사 분석', desc:'주요 경쟁사 포지셔닝 및 차별화 포인트',
+   purpose:'주요 경쟁사의 포지셔닝과 강·약점을 분석해 자사의 차별화 가능 영역을 도출합니다.',
+   deliver:'경쟁 구도 매핑(직접/간접/대체), 핵심 경쟁 요소 벤치마킹 표, 경쟁 공백(White Space) 가설, 전략적 시사점과 차별화 방향'},
+  {key:'scenario', name:'시나리오 플래닝', desc:'미래 변수에 따른 전략 시나리오 설계',
+   purpose:'규제·기술·고객 행동 변화 등 미래 변수에 따른 전략 시나리오를 설계하고 대응 전략을 준비합니다.',
+   deliver:'핵심 불확실성 축 2개 선정, 2x2 시나리오 매트릭스와 영향 분석, 시나리오별 전략 옵션과 No-regret Moves, 주요 인사이트와 리스크'},
+  {key:'idea', name:'아이디어 발굴', desc:'사업 기회 아이디어 도출 및 우선순위화',
+   purpose:'앞선 인사이트를 바탕으로 실행 가능한 사업 아이디어를 도출하고 우선순위화합니다.',
+   deliver:'후보 아이디어 5~6개 발굴 및 정의, 평가 기준(시장 매력도/자사 적합도/실행 난이도)별 우선순위 표, 상위 추천 아이디어와 선정 사유, MVP 및 검증 실험 제안'},
+  {key:'review', name:'사업성 검토', desc:'수익성, 리스크, 실행 가능성 평가',
+   purpose:'도출된 아이디어의 수익성·리스크·실행 가능성을 평가해 의사결정을 내릴 수 있는 근거를 만듭니다.',
+   deliver:'수익 모델과 단위경제(Unit Economics) 가설, 진입 비용과 핵심 자원 요구사항, 핵심 리스크와 완화 전략, 최종 권고(Go/No-Go)와 향후 90일 검증 과제'},
+];
+const ST_LABEL={todo:'대기',doing:'진행 중',done:'완료'};
+
+/* ---------- 저장소 ---------- */
+function load(){ try{return JSON.parse(localStorage.getItem(STORE))||[]}catch(e){return []} }
+function saveAll(list){ localStorage.setItem(STORE,JSON.stringify(list)); }
+function getP(id){ return load().find(p=>p.id===id); }
+function patchP(id,fn){ const l=load(); const p=l.find(x=>x.id===id); if(!p) return; fn(p); saveAll(l); }
+function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(2,7); }
+
+/* ---------- 유틸 ---------- */
+function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
+function fmtDate(t){ const d=new Date(t); return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.'; }
+function doneCount(p){ return STEPS.filter(s=>(p.steps[s.key]||{}).status==='done').length; }
+async function copyText(t,btn){
+  try{ await navigator.clipboard.writeText(t); }
+  catch(e){
+    const ta=document.createElement('textarea'); ta.value=t; document.body.appendChild(ta);
+    ta.select(); document.execCommand('copy'); ta.remove();
+  }
+  if(btn){ const o=btn.textContent; btn.textContent='복사됨 ✓'; setTimeout(()=>btn.textContent=o,1500); }
+}
+
+/* ---------- 라우터 ---------- */
+window.addEventListener('hashchange',()=>{
+  if(!location.hash.startsWith('#/p/')) openStep=null;
+  route();
+});
+function route(){
+  const h=location.hash||'#/';
+  let m;
+  if(h==='#/'||h==='') return viewList();
+  if(h==='#/new') return viewNew();
+  if(m=h.match(/^#\/p\/([^/]+)\/report$/)) return viewReport(m[1]);
+  if(m=h.match(/^#\/p\/([^/]+)$/)) return viewDetail(m[1]);
+  viewList();
+}
+
+function topbar(backHref,backLabel){
+  return `<div class="topbar">
+    <a class="brand" href="#/"><span class="mark">S</span>전략 프로젝트</a>
+    <a class="back" href="${backHref}">${backLabel}</a>
+  </div>`;
+}
+
+/* ---------- 목록 ---------- */
+let listQuery='';
+function viewList(){
+  const all=load();
+  const q=listQuery.trim().toLowerCase();
+  const list=all.filter(p=>!q||[p.title,p.industry,p.topic,p.keywords].join(' ').toLowerCase().includes(q));
+  $('#app').innerHTML=`
+    ${topbar('index.html','← 트렌드 레이더')}
+    <h1>전략 프로젝트</h1>
+    <div class="sub">총 <span class="cnt-num">${all.length}</span>개의 워크스페이스</div>
+    <div class="listhead">
+      <input id="lq" placeholder="프로젝트 검색" value="${esc(listQuery)}">
+      <button class="btn" onclick="location.hash='#/new'">＋ 새 프로젝트</button>
+    </div>
+    ${ all.length===0 ? `
+      <div class="emptybox">
+        <span class="ico"><svg width="26" height="26" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"><path d="M3 7a2 2 0 0 1 2-2h4l2 2h8a2 2 0 0 1 2 2v8a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2z"/><path d="M9 13h6"/></svg></span>
+        <h3>아직 프로젝트가 없습니다</h3>
+        <p>첫 전략 프로젝트를 시작해 보세요.</p>
+        <button class="btn" onclick="location.hash='#/new'">새 프로젝트</button>
+      </div>`
+    : list.length===0 ? `<div class="emptybox"><h3>검색 결과가 없습니다</h3><p>다른 키워드로 검색해 보세요.</p></div>`
+    : list.map(p=>{
+        const dc=doneCount(p);
+        return `<a class="pcard" href="#/p/${p.id}">
+          <h3>${esc(p.title)}</h3>
+          <div class="meta">
+            ${p.industry?`<span class="tag">${esc(p.industry)}</span>`:''}
+            ${p.customer?`<span class="tag">${esc(p.customer)}</span>`:''}
+            ${(p.keywords||'').split(',').map(k=>k.trim()).filter(Boolean).slice(0,3).map(k=>`<span class="tag kw">#${esc(k)}</span>`).join('')}
+          </div>
+          <div class="foot">
+            <span class="cnt-num">${fmtDate(p.createdAt)} 생성</span>
+            <span class="progress"><span class="pbar"><i style="width:${dc/STEPS.length*100}%"></i></span><span class="cnt-num">${dc}/${STEPS.length} 단계</span></span>
+          </div>
+          <button class="del" title="프로젝트 삭제" onclick="delProject(event,'${p.id}')">삭제</button>
+        </a>`;
+      }).join('')}
+  `;
+  $('#lq').addEventListener('input',e=>{ listQuery=e.target.value; viewList(); const i=$('#lq'); i.focus(); i.setSelectionRange(i.value.length,i.value.length); });
+}
+function delProject(ev,id){
+  ev.preventDefault(); ev.stopPropagation();
+  const p=getP(id);
+  if(!confirm(`'${p?p.title:''}' 프로젝트를 삭제할까요? 되돌릴 수 없습니다.`)) return;
+  saveAll(load().filter(x=>x.id!==id));
+  viewList();
+}
+
+/* ---------- 새 프로젝트 ---------- */
+function viewNew(){
+  $('#app').innerHTML=`
+    ${topbar('#/','← 목록')}
+    <h1>새 전략 프로젝트</h1>
+    <div class="sub">주제와 맥락을 입력하면 5단계 워크플로우가 준비됩니다.</div>
+
+    <div style="height:18px"></div>
+    <div class="card">
+      <h2>기본 정보</h2>
+      <div class="desc">전략 프로젝트의 제목과 영역을 정의합니다.</div>
+      <label>프로젝트 제목 <span class="req">*</span></label>
+      <input type="text" id="f-title" placeholder="예: B2B SaaS 진입 전략">
+      <label>산업 / 도메인</label>
+      <input type="text" id="f-industry" placeholder="예: B2B SaaS · 헬스케어 · 리테일">
+      <label>타깃 고객</label>
+      <input type="text" id="f-customer" placeholder="예: 중견기업 운영팀">
+      <label>타깃 지역</label>
+      <input type="text" id="f-region" placeholder="예: 한국, 일본">
+      <label>트렌드 키워드 <span class="opt">우리 팀 전용 · 쉼표로 구분</span></label>
+      <input type="text" id="f-keywords" placeholder="예: AI PC, 온디바이스 AI">
+      <div class="hint">입력한 키워드는 각 단계에서 트렌드 레이더 검색으로 바로 연결되어 뉴스·유튜브·커뮤니티 근거를 모을 때 사용됩니다.</div>
+    </div>
+
+    <div class="card">
+      <h2>전략 주제와 맥락</h2>
+      <div class="desc">AI가 전략 초안을 생성할 때 참고할 핵심 정보입니다.</div>
+      <label>전략 주제 <span class="req">*</span></label>
+      <textarea id="f-topic" placeholder="예: 중견기업 대상 AI 워크플로우 자동화 SaaS 진입"></textarea>
+      <label>배경 및 맥락</label>
+      <textarea id="f-background" placeholder="시장 가설, 회사 현황, 핵심 제약 조건 등을 자유롭게 입력하세요."></textarea>
+      <label>회사 강점</label>
+      <textarea id="f-strengths"></textarea>
+      <label>비즈니스 모델 가설</label>
+      <textarea id="f-bizmodel"></textarea>
+      <label>제약 조건</label>
+      <textarea id="f-constraints"></textarea>
+    </div>
+
+    <div class="card">
+      <h2>참고 자료</h2>
+      <div class="desc">내부 시장조사, 경쟁사 자료가 있다면 핵심 내용을 각 단계의 메모에 붙여넣어 주세요. AI 프롬프트에 컨텍스트로 함께 전달됩니다.</div>
+    </div>
+
+    <div class="formactions">
+      <button class="btn" onclick="createProject()">프로젝트 생성</button>
+      <button class="btn ghost" onclick="location.hash='#/'">취소</button>
+    </div>
+  `;
+}
+function createProject(){
+  const v=id=>$('#f-'+id).value.trim();
+  if(!v('title')){ alert('프로젝트 제목을 입력해 주세요.'); $('#f-title').focus(); return; }
+  if(!v('topic')){ alert('전략 주제를 입력해 주세요.'); $('#f-topic').focus(); return; }
+  const p={
+    id:uid(), createdAt:Date.now(),
+    title:v('title'), industry:v('industry'), customer:v('customer'), region:v('region'), keywords:v('keywords'),
+    topic:v('topic'), background:v('background'), strengths:v('strengths'), bizmodel:v('bizmodel'), constraints:v('constraints'),
+    steps:{}
+  };
+  const l=load(); l.unshift(p); saveAll(l);
+  location.hash='#/p/'+p.id;
+}
+
+/* ---------- 프로젝트 상세 ---------- */
+let openStep=null;
+function viewDetail(id){
+  const p=getP(id);
+  if(!p){ location.hash='#/'; return; }
+  const dc=doneCount(p);
+  if(openStep===null){
+    const next=STEPS.find(s=>(p.steps[s.key]||{}).status!=='done');
+    openStep=next?next.key:STEPS[0].key;
+  }
+  $('#app').innerHTML=`
+    ${topbar('#/','← 목록')}
+    <div class="phead">
+      <div class="row">
+        <div>
+          <h1>${esc(p.title)}</h1>
+          <div class="sub">${esc(p.topic)}</div>
+        </div>
+        <button class="btn small" onclick="location.hash='#/p/${p.id}/report'">최종 리포트</button>
+      </div>
+      <div class="statline">
+        <span class="pbar"><i style="width:${dc/STEPS.length*100}%"></i></span>
+        <span class="cnt-num">${dc}/${STEPS.length} 단계 완료</span>
+        <span>· ${fmtDate(p.createdAt)} 생성</span>
+      </div>
+    </div>
+    <div class="stepnav">
+      ${STEPS.map((s,i)=>{
+        const st=(p.steps[s.key]||{}).status||'todo';
+        return `<a href="#" class="${st==='done'?'done':''}" onclick="toggleStep(event,'${s.key}')"><b>${i+1}</b> ${s.name}${st==='done'?' ✓':''}</a>`;
+      }).join('')}
+    </div>
+    ${STEPS.map((s,i)=>renderStep(p,s,i)).join('')}
+  `;
+}
+function renderStep(p,s,i){
+  const d=p.steps[s.key]||{};
+  const st=d.status||'todo';
+  const open=openStep===s.key;
+  const kw=(p.keywords||'').split(',').map(k=>k.trim()).filter(Boolean)[0]||p.industry||'';
+  return `<div class="stepcard ${st} ${open?'open':''}" id="step-${s.key}">
+    <button class="stephead" onclick="toggleStep(event,'${s.key}')">
+      <span class="stepno">${st==='done'?'✓':i+1}</span>
+      <span class="tt"><h3>${esc(s.name)}</h3><p>${esc(s.desc)}</p></span>
+      <span class="stbadge ${st}">${ST_LABEL[st]}</span>
+    </button>
+    ${!open?'':`<div class="stepbody">
+      <div class="purpose"><b>이 단계의 목적</b> · ${esc(s.purpose)}</div>
+      <div class="toolrow">
+        <button class="btn ghost small" onclick="copyText(buildPrompt('${p.id}','${s.key}'),this)">AI 프롬프트 복사</button>
+        ${kw?`<a class="btn ghost small" href="index.html?q=${encodeURIComponent(kw)}" target="_blank" rel="noopener">트렌드 레이더에서 근거 수집 ↗</a>`:''}
+      </div>
+      <div class="hint" style="margin-top:8px">프롬프트를 복사해 ChatGPT·Claude에 붙여넣고, 답변을 아래 '결과 정리'에 붙여넣으면 최종 리포트에 반영됩니다.</div>
+      <label>결과 정리</label>
+      <textarea rows="8" placeholder="AI 답변이나 팀 분석 결과를 정리해 붙여넣으세요." oninput="saveStep('${p.id}','${s.key}','result',this)">${esc(d.result||'')}</textarea>
+      <label>단계 메모 <span class="opt">참고 자료 요약, 재생성 시 추가 지시 등</span></label>
+      <textarea rows="3" oninput="saveStep('${p.id}','${s.key}','memo',this)">${esc(d.memo||'')}</textarea>
+      <div class="stchips">
+        ${['todo','doing','done'].map(k=>`<button class="chip-st ${st===k?'on':''}" onclick="setStatus('${p.id}','${s.key}','${k}')">${ST_LABEL[k]}</button>`).join('')}
+        <span class="savemark" id="sv-${s.key}">저장됨 ✓</span>
+      </div>
+    </div>`}
+  </div>`;
+}
+function toggleStep(ev,key){
+  ev.preventDefault();
+  openStep = openStep===key ? '' : key;
+  route();
+  const el=document.getElementById('step-'+key);
+  if(el&&openStep===key) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+let svTimer={};
+function saveStep(id,key,field,ta){
+  patchP(id,p=>{
+    p.steps[key]=p.steps[key]||{};
+    p.steps[key][field]=ta.value;
+    if(field==='result'&&ta.value.trim()&&(p.steps[key].status||'todo')==='todo') p.steps[key].status='doing';
+  });
+  const m=document.getElementById('sv-'+key);
+  if(m){ m.classList.add('show'); clearTimeout(svTimer[key]); svTimer[key]=setTimeout(()=>m.classList.remove('show'),1200); }
+}
+function setStatus(id,key,st){
+  patchP(id,p=>{ p.steps[key]=p.steps[key]||{}; p.steps[key].status=st; });
+  route();
+}
+
+/* ---------- AI 프롬프트 생성 ---------- */
+function buildPrompt(id,key){
+  const p=getP(id); if(!p) return '';
+  const s=STEPS.find(x=>x.key===key);
+  const idx=STEPS.indexOf(s);
+  const ctx=[
+    ['프로젝트 제목',p.title],['산업/도메인',p.industry],['타깃 고객',p.customer],['타깃 지역',p.region],
+    ['전략 주제',p.topic],['배경 및 맥락',p.background],['회사 강점',p.strengths],
+    ['비즈니스 모델 가설',p.bizmodel],['제약 조건',p.constraints],
+  ].filter(([,v])=>v).map(([k,v])=>`- ${k}: ${v}`).join('\n');
+  const prev=STEPS.slice(0,idx).map((ps,j)=>{
+    const r=(p.steps[ps.key]||{}).result;
+    return r?`\n[${j+1}단계 ${ps.name} 결과 요약]\n${r.slice(0,800)}${r.length>800?'…':''}`:'';
+  }).filter(Boolean).join('\n');
+  const memo=(p.steps[key]||{}).memo;
+  return `당신은 글로벌 수준의 신사업 전략 컨설턴트입니다. 아래 프로젝트에 대해 5단계 전략 프레임워크 중 ${idx+1}단계 '${s.name}'을(를) 작성해 주세요.
+
+[프로젝트 정보]
+${ctx}
+${prev?prev+'\n':''}${memo?`\n[이 단계에 대한 추가 지시/참고 메모]\n${memo}\n`:''}
+[이 단계의 목적]
+${s.purpose}
+
+[요구 산출물]
+${s.deliver}
+
+작성 원칙: 단순 정보 나열이 아니라 의사결정에 쓸 수 있는 분석과 근거 중심으로, 각 산출물을 소제목으로 구분해 한국어로 작성해 주세요. 확실하지 않은 수치는 가설임을 명시해 주세요.`;
+}
+
+/* ---------- 최종 리포트 ---------- */
+function viewReport(id){
+  const p=getP(id);
+  if(!p){ location.hash='#/'; return; }
+  const dc=doneCount(p);
+  const q=`${p.customer||'타깃 고객'}이(가) "${p.topic}" 영역에서 해결하고자 하는 핵심 미충족 수요는 무엇이며, 자사의 강점${p.strengths?`(${p.strengths})`:''}을 활용해 어떤 차별화된 가치를 어떤 순서로 전달할 것인가?`;
+  $('#app').innerHTML=`
+    ${topbar('#/p/'+p.id,'← 프로젝트')}
+    <div class="reportbar">
+      <button class="btn small" onclick="window.print()">인쇄 / PDF</button>
+      <button class="btn ghost small" onclick="copyText(buildMarkdown('${p.id}'),this)">전체 복사</button>
+      <button class="btn ghost small" onclick="downloadMd('${p.id}')">Markdown 다운로드</button>
+    </div>
+    <div class="report">
+      <span class="eyebrow">STRATEGY REPORT</span>
+      <h1>${esc(p.title)}</h1>
+      <div class="rsub">${esc(p.topic)}</div>
+      <div class="rmeta">
+        <div><span>생성일</span><b class="cnt-num">${fmtDate(p.createdAt)}</b></div>
+        ${p.industry?`<div><span>산업</span><b>${esc(p.industry)}</b></div>`:''}
+        ${p.region?`<div><span>타깃 지역</span><b>${esc(p.region)}</b></div>`:''}
+        <div><span>완료 단계</span><b class="cnt-num">${dc} / ${STEPS.length}</b></div>
+      </div>
+      <div class="rquote"><span class="qt">전략 질문</span>${esc(q)}</div>
+      ${STEPS.map((s,i)=>{
+        const r=(p.steps[s.key]||{}).result;
+        return `<div class="rsec">
+          <h2><span class="no">0${i+1}</span>${esc(s.name)}</h2>
+          ${r?`<div class="rbody">${esc(r)}</div>`:`<div class="rempty">아직 작성되지 않은 단계입니다.</div>`}
+        </div>`;
+      }).join('')}
+    </div>
+  `;
+}
+function buildMarkdown(id){
+  const p=getP(id); if(!p) return '';
+  const lines=[`# ${p.title}`,'',`> ${p.topic}`,'',`- 생성일: ${fmtDate(p.createdAt)}`];
+  if(p.industry) lines.push(`- 산업: ${p.industry}`);
+  if(p.customer) lines.push(`- 타깃 고객: ${p.customer}`);
+  if(p.region) lines.push(`- 타깃 지역: ${p.region}`);
+  STEPS.forEach((s,i)=>{
+    lines.push('',`## ${i+1}. ${s.name}`,'');
+    lines.push((p.steps[s.key]||{}).result||'_아직 작성되지 않은 단계입니다._');
+  });
+  return lines.join('\n');
+}
+function downloadMd(id){
+  const p=getP(id); if(!p) return;
+  const a=document.createElement('a');
+  a.href=URL.createObjectURL(new Blob([buildMarkdown(id)],{type:'text/markdown'}));
+  a.download=p.title.replace(/[\\/:*?"<>|]/g,'_')+'.md';
+  a.click();
+  URL.revokeObjectURL(a.href);
+}
+
+/* ---------- 시작 ---------- */
+route();
+</script>
+</body>
+</html>
