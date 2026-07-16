@@ -32,6 +32,7 @@
   .topbar{display:flex;align-items:center;justify-content:space-between;margin-bottom:22px;gap:10px}
   .brand{display:flex;align-items:center;gap:9px;font-weight:800;font-size:17px;letter-spacing:-.4px}
   .brand .mark{width:26px;height:26px;border-radius:8px;background:linear-gradient(135deg,var(--brand),var(--brand-strong));display:inline-flex;align-items:center;justify-content:center;color:#fff;font-size:13px;font-weight:800}
+  .topbtns{display:flex;gap:7px}
   .topbar .back{font-size:13px;color:var(--muted);border:1px solid var(--line);background:var(--panel);padding:7px 13px;border-radius:9px;white-space:nowrap}
   .topbar .back:hover{color:var(--text);border-color:var(--brand-line)}
 
@@ -42,10 +43,11 @@
   /* ---- 버튼 ---- */
   .btn{display:inline-flex;align-items:center;gap:7px;border:none;border-radius:11px;font-size:14px;font-weight:700;padding:12px 20px;background:var(--brand);color:#fff;transition:background .15s}
   .btn:hover{background:var(--brand-strong)}
+  .btn:disabled{opacity:.55;cursor:wait}
   .btn.ghost{background:var(--panel);color:var(--muted);border:1px solid var(--line);font-weight:600}
   .btn.ghost:hover{color:var(--text);border-color:var(--brand-line);background:var(--panel)}
   .btn.small{padding:8px 14px;font-size:13px;border-radius:9px}
-  .btn:focus-visible,.chip-st:focus-visible,input:focus-visible,textarea:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
+  .btn:focus-visible,.chip-st:focus-visible,input:focus-visible,textarea:focus-visible,select:focus-visible{outline:2px solid var(--brand);outline-offset:2px}
 
   /* ---- 목록 ---- */
   .listhead{display:flex;gap:10px;margin:18px 0 20px}
@@ -76,19 +78,19 @@
   label{display:block;font-size:14px;font-weight:700;margin:16px 0 7px}
   label .req{color:var(--brand)}
   label .opt{font-weight:500;color:var(--faint);font-size:12px;margin-left:4px}
-  input[type=text],textarea{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 15px;font-size:15px;color:var(--text);outline:none;font-family:inherit}
-  input[type=text]:focus,textarea:focus{border-color:var(--brand)}
+  input[type=text],input[type=password],textarea,select{width:100%;background:var(--panel);border:1px solid var(--line);border-radius:11px;padding:12px 15px;font-size:15px;color:var(--text);outline:none;font-family:inherit}
+  input:focus,textarea:focus,select:focus{border-color:var(--brand)}
   textarea{min-height:96px;resize:vertical;line-height:1.6}
   ::placeholder{color:var(--faint)}
   .formactions{display:flex;gap:10px;margin:6px 0 18px}
   .hint{font-size:12.5px;color:var(--faint);margin-top:6px;line-height:1.6}
+  .hint a{color:var(--brand)}
 
   /* ---- 프로젝트 상세 ---- */
   .phead{margin-bottom:18px}
-  .phead .crumb{font-size:13px;color:var(--muted);margin-bottom:10px;display:inline-block}
-  .phead .crumb:hover{color:var(--brand)}
   .phead .row{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;flex-wrap:wrap}
-  .statline{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--muted)}
+  .phead .actions{display:flex;gap:8px;flex-wrap:wrap}
+  .statline{display:flex;align-items:center;gap:10px;margin-top:12px;font-size:13px;color:var(--muted);flex-wrap:wrap}
   .statline .pbar{width:150px;height:6px}
 
   .stepnav{display:flex;gap:7px;margin:16px 0 20px;overflow-x:auto;padding-bottom:4px}
@@ -117,6 +119,10 @@
   .chip-st.on{background:var(--brand);border-color:var(--brand);color:#fff}
   .savemark{font-size:12px;color:var(--ok);margin-left:auto;align-self:center;opacity:0;transition:opacity .3s}
   .savemark.show{opacity:1}
+  details.hist{margin-top:14px;font-size:13px}
+  details.hist summary{color:var(--muted);cursor:pointer;font-weight:600}
+  .histrow{display:flex;align-items:center;justify-content:space-between;gap:10px;padding:8px 0;border-bottom:1px solid var(--line);color:var(--faint);font-size:12.5px}
+  .histrow:last-child{border-bottom:none}
 
   /* ---- 리포트 ---- */
   .reportbar{display:flex;flex-wrap:wrap;gap:8px;margin-bottom:18px}
@@ -129,18 +135,30 @@
   .rmeta div b{font-size:13.5px;font-weight:700}
   .rquote{border-left:3px solid var(--brand);background:var(--brand-soft);border-radius:0 11px 11px 0;padding:15px 18px;font-size:14px;line-height:1.7;margin:20px 0}
   .rquote .qt{font-size:11.5px;font-weight:800;letter-spacing:.12em;color:var(--brand);display:block;margin-bottom:6px}
+  .rsynth{border:1px solid var(--brand-line);background:var(--brand-soft);border-radius:13px;padding:18px;margin:22px 0}
+  .rsynth .sh{display:flex;align-items:center;justify-content:space-between;gap:10px;margin-bottom:8px}
+  .rsynth .sh b{font-size:13px;letter-spacing:.1em;color:var(--brand)}
+  .rsynth .sbody{font-size:14px;line-height:1.75;white-space:pre-wrap}
+  .rsynth .sempty{font-size:13px;color:var(--muted);line-height:1.7}
   .rsec{margin-top:30px}
   .rsec h2{font-size:16.5px;font-weight:800;letter-spacing:-.3px;display:flex;align-items:baseline;gap:9px}
   .rsec h2 .no{color:var(--brand);font-size:13px;font-variant-numeric:tabular-nums}
   .rsec .rbody{font-size:14px;line-height:1.75;margin-top:10px;white-space:pre-wrap;word-break:break-word}
-  .rsec .rempty{font-size:13px;color:var(--faint);margin-top:8px;font-style:normal}
+  .rsec .rempty{font-size:13px;color:var(--faint);margin-top:8px}
+
+  /* ---- 모달 ---- */
+  .modal-bg{display:none;position:fixed;inset:0;background:rgba(20,14,40,.55);z-index:20;align-items:center;justify-content:center;padding:18px}
+  .modal{background:var(--panel);border:1px solid var(--line);border-radius:16px;padding:26px 24px;width:min(480px,94vw);max-height:88vh;overflow-y:auto;box-shadow:var(--shadow)}
+  .modal h3{font-size:17px;font-weight:800;margin-bottom:4px}
+  .modal .desc{font-size:13px;color:var(--muted);line-height:1.6;margin-bottom:6px}
+  .modal .row{display:flex;gap:10px;justify-content:flex-end;margin-top:22px}
 
   @media (max-width:560px){
     .report{padding:26px 20px}
     .formactions{flex-wrap:wrap}
   }
   @media print{
-    :root{--bg:#fff;--panel:#fff;--panel2:#f3f1f8;--line:#ddd;--text:#111;--muted:#555;--faint:#888;--brand:#5638CE;--brand-soft:#f1edfc;--brand-line:#ccc;--shadow:none}
+    :root{--bg:#fff;--panel:#fff;--panel2:#f3f1f8;--line:#ddd;--text:#111;--muted:#555;--faint:#888;--brand:#5638CE;--brand-soft:#f1edfc;--brand-line:#ccc;--ok:#1F9D6D;--shadow:none}
     body{background:#fff}
     .topbar,.reportbar,.noprint{display:none!important}
     .wrap{max-width:100%;padding:0}
@@ -152,9 +170,32 @@
 <body>
 <div class="wrap" id="app"></div>
 
+<div class="modal-bg" id="ai-modal">
+  <div class="modal">
+    <h3>AI 설정</h3>
+    <p class="desc">키를 등록하면 각 단계의 전략 초안을 이 페이지에서 바로 생성합니다. 모든 키는 이 브라우저에만 저장됩니다.</p>
+    <label>AI 제공자</label>
+    <select id="ai-provider" onchange="onProviderChange()">
+      <option value="anthropic">Claude (Anthropic)</option>
+      <option value="gemini">Gemini (Google · 무료 키 가능)</option>
+    </select>
+    <label>API 키</label>
+    <input type="password" id="ai-key" placeholder="sk-ant-... 또는 AIza...">
+    <div class="hint" id="ai-keyhint"></div>
+    <label>모델 <span class="opt">비워두면 기본값 사용</span></label>
+    <input type="text" id="ai-model" placeholder="claude-sonnet-5">
+    <div class="row">
+      <button class="btn ghost" onclick="closeAI()">닫기</button>
+      <button class="btn" onclick="saveAI()">저장</button>
+    </div>
+  </div>
+</div>
+
 <script>
 const $=s=>document.querySelector(s);
 const STORE='tr_strategy_projects_v1';
+const AI_STORE='tr_strategy_ai_v1';
+const DEFAULT_MODELS={anthropic:'claude-sonnet-5', gemini:'gemini-2.5-flash'};
 
 /* ---------- 5단계 프레임워크 정의 ---------- */
 const STEPS=[
@@ -186,6 +227,7 @@ function uid(){ return Date.now().toString(36)+Math.random().toString(36).slice(
 /* ---------- 유틸 ---------- */
 function esc(s){return (s||'').replace(/[&<>"']/g,c=>({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'}[c]))}
 function fmtDate(t){ const d=new Date(t); return d.getFullYear()+'. '+(d.getMonth()+1)+'. '+d.getDate()+'.'; }
+function fmtDT(t){ const d=new Date(t); return fmtDate(t)+' '+d.getHours()+':'+String(d.getMinutes()).padStart(2,'0'); }
 function doneCount(p){ return STEPS.filter(s=>(p.steps[s.key]||{}).status==='done').length; }
 async function copyText(t,btn){
   try{ await navigator.clipboard.writeText(t); }
@@ -194,6 +236,92 @@ async function copyText(t,btn){
     ta.select(); document.execCommand('copy'); ta.remove();
   }
   if(btn){ const o=btn.textContent; btn.textContent='복사됨 ✓'; setTimeout(()=>btn.textContent=o,1500); }
+}
+
+/* ---------- AI 설정 ---------- */
+function aiCfg(){ try{return JSON.parse(localStorage.getItem(AI_STORE))||{}}catch(e){return {}} }
+function openAI(){
+  const c=aiCfg();
+  $('#ai-provider').value=c.provider||'anthropic';
+  $('#ai-key').value=c.key||'';
+  $('#ai-model').value=c.model||'';
+  onProviderChange();
+  $('#ai-modal').style.display='flex';
+}
+function closeAI(){ $('#ai-modal').style.display='none'; }
+function onProviderChange(){
+  const pv=$('#ai-provider').value;
+  $('#ai-model').placeholder=DEFAULT_MODELS[pv];
+  $('#ai-keyhint').innerHTML = pv==='gemini'
+    ? '<a href="https://aistudio.google.com/apikey" target="_blank" rel="noopener">Google AI Studio ↗</a>에서 무료로 발급 (AIza… 형식)'
+    : '<a href="https://console.anthropic.com/settings/keys" target="_blank" rel="noopener">Anthropic Console ↗</a>에서 발급 (sk-ant-… 형식)';
+}
+function saveAI(){
+  localStorage.setItem(AI_STORE,JSON.stringify({
+    provider:$('#ai-provider').value,
+    key:$('#ai-key').value.trim(),
+    model:$('#ai-model').value.trim(),
+  }));
+  closeAI(); route();
+}
+$('#ai-modal').addEventListener('click',e=>{ if(e.target.id==='ai-modal') closeAI(); });
+
+/* ---------- AI 호출 (브라우저 직접 · SSE 스트리밍) ---------- */
+async function readSSE(resp,onData){
+  const rd=resp.body.getReader(), dec=new TextDecoder();
+  let buf='';
+  for(;;){
+    const {done,value}=await rd.read();
+    if(done) break;
+    buf+=dec.decode(value,{stream:true});
+    let i;
+    while((i=buf.indexOf('\n'))>=0){
+      const line=buf.slice(0,i).trim(); buf=buf.slice(i+1);
+      if(!line.startsWith('data:')) continue;
+      const d=line.slice(5).trim();
+      if(!d||d==='[DONE]') continue;
+      try{ onData(JSON.parse(d)); }catch(e){}
+    }
+  }
+}
+async function streamLLM(prompt,onDelta){
+  const cfg=aiCfg();
+  if(!cfg.key) throw new Error('AI 설정에서 API 키를 먼저 등록해 주세요.');
+  const provider=cfg.provider||'anthropic';
+  const model=(cfg.model||'').trim()||DEFAULT_MODELS[provider];
+  let resp;
+  if(provider==='gemini'){
+    resp=await fetch(`https://generativelanguage.googleapis.com/v1beta/models/${encodeURIComponent(model)}:streamGenerateContent?alt=sse&key=${encodeURIComponent(cfg.key)}`,{
+      method:'POST', headers:{'content-type':'application/json'},
+      body:JSON.stringify({contents:[{role:'user',parts:[{text:prompt}]}]})
+    });
+  }else{
+    resp=await fetch('https://api.anthropic.com/v1/messages',{
+      method:'POST',
+      headers:{
+        'content-type':'application/json',
+        'x-api-key':cfg.key,
+        'anthropic-version':'2023-06-01',
+        'anthropic-dangerous-direct-browser-access':'true'
+      },
+      body:JSON.stringify({model,max_tokens:4096,stream:true,messages:[{role:'user',content:prompt}]})
+    });
+  }
+  if(!resp.ok){
+    let msg='';
+    try{ const j=await resp.json(); msg=(j.error&&j.error.message)||JSON.stringify(j); }
+    catch(e){ try{ msg=await resp.text(); }catch(e2){} }
+    throw new Error(`API 오류 (${resp.status}) ${String(msg).slice(0,300)}`);
+  }
+  let full='';
+  await readSSE(resp,d=>{
+    let t='';
+    if(d.type==='content_block_delta') t=(d.delta&&d.delta.text)||'';
+    else if(d.candidates) t=((d.candidates[0]||{}).content||{}).parts?.map(x=>x.text||'').join('')||'';
+    if(t){ full+=t; onDelta(t,full); }
+  });
+  if(!full.trim()) throw new Error('빈 응답을 받았습니다. 모델명과 키를 확인해 주세요.');
+  return full;
 }
 
 /* ---------- 라우터 ---------- */
@@ -214,7 +342,10 @@ function route(){
 function topbar(backHref,backLabel){
   return `<div class="topbar">
     <a class="brand" href="#/"><span class="mark">S</span>전략 프로젝트</a>
-    <a class="back" href="${backHref}">${backLabel}</a>
+    <div class="topbtns">
+      <button class="back" onclick="openAI()">⚙ AI 설정</button>
+      <a class="back" href="${backHref}">${backLabel}</a>
+    </div>
   </div>`;
 }
 
@@ -272,7 +403,7 @@ function viewNew(){
   $('#app').innerHTML=`
     ${topbar('#/','← 목록')}
     <h1>새 전략 프로젝트</h1>
-    <div class="sub">주제와 맥락을 입력하면 5단계 워크플로우가 준비됩니다.</div>
+    <div class="sub">주제와 맥락을 입력하면 5단계 전략 초안이 이 페이지에서 생성됩니다.</div>
 
     <div style="height:18px"></div>
     <div class="card">
@@ -308,7 +439,7 @@ function viewNew(){
 
     <div class="card">
       <h2>참고 자료</h2>
-      <div class="desc">내부 시장조사, 경쟁사 자료가 있다면 핵심 내용을 각 단계의 메모에 붙여넣어 주세요. AI 프롬프트에 컨텍스트로 함께 전달됩니다.</div>
+      <div class="desc">내부 시장조사, 경쟁사 자료가 있다면 핵심 내용을 각 단계의 메모에 붙여넣어 주세요. AI 생성 시 컨텍스트로 함께 전달됩니다.</div>
     </div>
 
     <div class="formactions">
@@ -349,7 +480,10 @@ function viewDetail(id){
           <h1>${esc(p.title)}</h1>
           <div class="sub">${esc(p.topic)}</div>
         </div>
-        <button class="btn small" onclick="location.hash='#/p/${p.id}/report'">최종 리포트</button>
+        <div class="actions">
+          <button class="btn ghost small" onclick="generateAll('${p.id}')">전체 자동 생성</button>
+          <button class="btn small" onclick="location.hash='#/p/${p.id}/report'">최종 리포트</button>
+        </div>
       </div>
       <div class="statline">
         <span class="pbar"><i style="width:${dc/STEPS.length*100}%"></i></span>
@@ -371,6 +505,7 @@ function renderStep(p,s,i){
   const st=d.status||'todo';
   const open=openStep===s.key;
   const kw=(p.keywords||'').split(',').map(k=>k.trim()).filter(Boolean)[0]||p.industry||'';
+  const hist=d.history||[];
   return `<div class="stepcard ${st} ${open?'open':''}" id="step-${s.key}">
     <button class="stephead" onclick="toggleStep(event,'${s.key}')">
       <span class="stepno">${st==='done'?'✓':i+1}</span>
@@ -380,18 +515,22 @@ function renderStep(p,s,i){
     ${!open?'':`<div class="stepbody">
       <div class="purpose"><b>이 단계의 목적</b> · ${esc(s.purpose)}</div>
       <div class="toolrow">
-        <button class="btn ghost small" onclick="copyText(buildPrompt('${p.id}','${s.key}'),this)">AI 프롬프트 복사</button>
-        ${kw?`<a class="btn ghost small" href="index.html?q=${encodeURIComponent(kw)}" target="_blank" rel="noopener">트렌드 레이더에서 근거 수집 ↗</a>`:''}
+        <button class="btn small gen-btn" onclick="generateStep('${p.id}','${s.key}',this)">${d.result?'AI 재생성':'AI 생성'}</button>
+        <button class="btn ghost small" onclick="copyText(buildPrompt('${p.id}','${s.key}'),this)">프롬프트 복사</button>
+        ${kw?`<a class="btn ghost small" href="index.html?q=${encodeURIComponent(kw)}" target="_blank" rel="noopener">트렌드 레이더 ↗</a>`:''}
       </div>
-      <div class="hint" style="margin-top:8px">프롬프트를 복사해 ChatGPT·Claude에 붙여넣고, 답변을 아래 '결과 정리'에 붙여넣으면 최종 리포트에 반영됩니다.</div>
+      <div class="hint" style="margin-top:8px">AI 생성 결과는 아래에서 자유롭게 수정할 수 있습니다. 키가 없다면 '프롬프트 복사'로 ChatGPT·Claude 웹에서 생성해 붙여넣어도 됩니다.</div>
       <label>결과 정리</label>
-      <textarea rows="8" placeholder="AI 답변이나 팀 분석 결과를 정리해 붙여넣으세요." oninput="saveStep('${p.id}','${s.key}','result',this)">${esc(d.result||'')}</textarea>
-      <label>단계 메모 <span class="opt">참고 자료 요약, 재생성 시 추가 지시 등</span></label>
-      <textarea rows="3" oninput="saveStep('${p.id}','${s.key}','memo',this)">${esc(d.memo||'')}</textarea>
+      <textarea rows="10" data-role="result" placeholder="AI 생성 버튼을 누르면 이곳에 결과가 실시간으로 작성됩니다." oninput="saveStep('${p.id}','${s.key}','result',this)">${esc(d.result||'')}</textarea>
+      <label>단계 메모 <span class="opt">참고 자료 요약, 재생성 시 추가 지시 등 — AI 컨텍스트로 전달</span></label>
+      <textarea rows="3" data-role="memo" oninput="saveStep('${p.id}','${s.key}','memo',this)">${esc(d.memo||'')}</textarea>
       <div class="stchips">
         ${['todo','doing','done'].map(k=>`<button class="chip-st ${st===k?'on':''}" onclick="setStatus('${p.id}','${s.key}','${k}')">${ST_LABEL[k]}</button>`).join('')}
         <span class="savemark" id="sv-${s.key}">저장됨 ✓</span>
       </div>
+      ${hist.length?`<details class="hist"><summary>버전 이력 ${hist.length}개 (재생성 시 자동 보관)</summary>
+        ${hist.slice().reverse().map((h,j)=>`<div class="histrow"><span>${fmtDT(h.ts)} · ${h.text.length.toLocaleString()}자</span><button class="btn ghost small" onclick="restoreVer('${p.id}','${s.key}',${hist.length-1-j})">복원</button></div>`).join('')}
+      </details>`:''}
     </div>`}
   </div>`;
 }
@@ -414,6 +553,18 @@ function saveStep(id,key,field,ta){
 }
 function setStatus(id,key,st){
   patchP(id,p=>{ p.steps[key]=p.steps[key]||{}; p.steps[key].status=st; });
+  route();
+}
+function restoreVer(id,key,idx){
+  patchP(id,p=>{
+    const d=p.steps[key];
+    if(!d||!d.history||!d.history[idx]) return;
+    const old=d.history[idx].text;
+    d.history.splice(idx,1);
+    if(d.result&&d.result.trim()) d.history.push({ts:Date.now(),text:d.result});
+    d.history=d.history.slice(-10);
+    d.result=old;
+  });
   route();
 }
 
@@ -443,7 +594,57 @@ ${s.purpose}
 [요구 산출물]
 ${s.deliver}
 
-작성 원칙: 단순 정보 나열이 아니라 의사결정에 쓸 수 있는 분석과 근거 중심으로, 각 산출물을 소제목으로 구분해 한국어로 작성해 주세요. 확실하지 않은 수치는 가설임을 명시해 주세요.`;
+작성 원칙: 단순 정보 나열이 아니라 의사결정에 쓸 수 있는 분석과 근거 중심으로, 각 산출물을 소제목으로 구분해 한국어로 작성해 주세요. 마크다운 기호(#, *)는 쓰지 말고 소제목과 번호, 필요 시 파이프(|) 텍스트 표를 사용하세요. 확실하지 않은 수치는 가설임을 명시해 주세요.`;
+}
+
+/* ---------- AI 단계 생성 ---------- */
+let genBusy=false;
+async function generateStep(id,key,btn){
+  if(!aiCfg().key){ openAI(); return; }
+  if(genBusy){ alert('다른 생성 작업이 진행 중입니다. 잠시 후 다시 시도해 주세요.'); return; }
+  genBusy=true;
+  if(btn){ btn.disabled=true; btn.textContent='생성 중…'; }
+  patchP(id,p=>{
+    const d=p.steps[key]=p.steps[key]||{};
+    if(d.result&&d.result.trim()) d.history=(d.history||[]).concat({ts:Date.now(),text:d.result}).slice(-10);
+    d.status='doing';
+  });
+  const badge=document.querySelector(`#step-${key} .stbadge`);
+  if(badge){ badge.textContent='생성 중'; badge.className='stbadge doing'; }
+  const ta=()=>document.querySelector(`#step-${key} textarea[data-role=result]`);
+  try{
+    const text=await streamLLM(buildPrompt(id,key),(t,full)=>{
+      const el=ta();
+      if(el){ el.value=full; el.scrollTop=el.scrollHeight; }
+    });
+    patchP(id,p=>{
+      const d=p.steps[key]=p.steps[key]||{};
+      d.result=text; d.status='done'; d.updatedAt=Date.now();
+    });
+    genBusy=false;
+    route();
+  }catch(e){
+    genBusy=false;
+    patchP(id,p=>{ const d=p.steps[key]; if(d) d.status=(d.result&&d.result.trim())?'done':'todo'; });
+    route();
+    alert('생성 실패: '+e.message);
+  }
+}
+async function generateAll(id){
+  if(!aiCfg().key){ openAI(); return; }
+  if(genBusy){ alert('다른 생성 작업이 진행 중입니다.'); return; }
+  const p=getP(id);
+  const todo=STEPS.filter(s=>(p.steps[s.key]||{}).status!=='done');
+  if(!todo.length){ alert('모든 단계가 이미 완료 상태입니다. 각 단계에서 개별 재생성할 수 있어요.'); return; }
+  if(!confirm(`미완료 단계 ${todo.length}개를 이전 단계 결과를 이어받으며 순서대로 생성합니다. 몇 분 정도 걸릴 수 있어요.`)) return;
+  for(const s of todo){
+    openStep=s.key; route();
+    const btn=document.querySelector(`#step-${s.key} .gen-btn`);
+    await generateStep(id,s.key,btn);
+    if(((getP(id).steps[s.key]||{}).status)!=='done') return; // 실패 시 중단
+  }
+  const el=document.querySelector('.phead');
+  if(el) el.scrollIntoView({behavior:'smooth'});
 }
 
 /* ---------- 최종 리포트 ---------- */
@@ -455,7 +656,8 @@ function viewReport(id){
   $('#app').innerHTML=`
     ${topbar('#/p/'+p.id,'← 프로젝트')}
     <div class="reportbar">
-      <button class="btn small" onclick="window.print()">인쇄 / PDF</button>
+      <button class="btn small" onclick="synthReport('${p.id}',this)">${p.report?'리포트 재합성':'리포트 합성'}</button>
+      <button class="btn ghost small" onclick="window.print()">인쇄 / PDF</button>
       <button class="btn ghost small" onclick="copyText(buildMarkdown('${p.id}'),this)">전체 복사</button>
       <button class="btn ghost small" onclick="downloadMd('${p.id}')">Markdown 다운로드</button>
     </div>
@@ -470,6 +672,12 @@ function viewReport(id){
         <div><span>완료 단계</span><b class="cnt-num">${dc} / ${STEPS.length}</b></div>
       </div>
       <div class="rquote"><span class="qt">전략 질문</span>${esc(q)}</div>
+      <div class="rsynth">
+        <div class="sh"><b>EXECUTIVE SUMMARY</b>${p.report?`<span class="hint" style="margin:0">${fmtDT(p.report.at)} 합성</span>`:''}</div>
+        ${p.report
+          ? `<div class="sbody" id="rsynth-body">${esc(p.report.text)}</div>`
+          : `<div class="sempty" id="rsynth-body">아직 합성된 요약이 없습니다. 단계 결과를 생성한 뒤 '리포트 합성'을 누르면 Executive Summary, 핵심 인사이트, 30·60·90일 액션 플랜이 이곳에 생성됩니다.</div>`}
+      </div>
       ${STEPS.map((s,i)=>{
         const r=(p.steps[s.key]||{}).result;
         return `<div class="rsec">
@@ -480,12 +688,54 @@ function viewReport(id){
     </div>
   `;
 }
+function buildReportPrompt(p){
+  const secs=STEPS.map((s,i)=>{
+    const r=(p.steps[s.key]||{}).result;
+    return r?`[${i+1}. ${s.name}]\n${r}`:'';
+  }).filter(Boolean).join('\n\n');
+  return `당신은 전략 분석 결과를 짧고 강하게 정리하는 Executive Summary 편집자입니다. 아래 신사업 전략 5단계 분석 결과를 종합해, 의사결정자가 3분 안에 읽을 수 있는 한국어 요약을 작성해 주세요.
+
+구성:
+1) Executive Summary (5~7문장)
+2) 핵심 인사이트 3가지
+3) 추천 액션 플랜 (향후 30일 / 60일 / 90일)
+
+마크다운 기호(#, *) 없이 소제목과 번호로 구분해 주세요.
+
+프로젝트: ${p.title}
+전략 주제: ${p.topic}
+
+${secs}`;
+}
+async function synthReport(id,btn){
+  if(!aiCfg().key){ openAI(); return; }
+  if(genBusy){ alert('다른 생성 작업이 진행 중입니다.'); return; }
+  const p=getP(id);
+  if(!STEPS.some(s=>(p.steps[s.key]||{}).result)){ alert('먼저 단계 결과를 생성해 주세요.'); return; }
+  genBusy=true;
+  if(btn){ btn.disabled=true; btn.textContent='합성 중…'; }
+  const box=()=>document.getElementById('rsynth-body');
+  try{
+    const text=await streamLLM(buildReportPrompt(p),(t,full)=>{
+      const el=box();
+      if(el){ el.textContent=full; el.className='sbody'; }
+    });
+    patchP(id,p2=>{ p2.report={text,at:Date.now()}; });
+    genBusy=false;
+    route();
+  }catch(e){
+    genBusy=false;
+    route();
+    alert('합성 실패: '+e.message);
+  }
+}
 function buildMarkdown(id){
   const p=getP(id); if(!p) return '';
   const lines=[`# ${p.title}`,'',`> ${p.topic}`,'',`- 생성일: ${fmtDate(p.createdAt)}`];
   if(p.industry) lines.push(`- 산업: ${p.industry}`);
   if(p.customer) lines.push(`- 타깃 고객: ${p.customer}`);
   if(p.region) lines.push(`- 타깃 지역: ${p.region}`);
+  if(p.report){ lines.push('','## Executive Summary','',p.report.text); }
   STEPS.forEach((s,i)=>{
     lines.push('',`## ${i+1}. ${s.name}`,'');
     lines.push((p.steps[s.key]||{}).result||'_아직 작성되지 않은 단계입니다._');
