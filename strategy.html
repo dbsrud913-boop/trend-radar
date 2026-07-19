@@ -96,7 +96,35 @@
   .stepnav{display:flex;gap:7px;margin:16px 0 20px;overflow-x:auto;padding-bottom:4px}
   .stepnav a{flex-shrink:0;display:inline-flex;align-items:center;gap:6px;font-size:12.5px;font-weight:600;color:var(--muted);background:var(--panel);border:1px solid var(--line);border-radius:99px;padding:6px 13px}
   .stepnav a.done{color:var(--ok);background:var(--ok-soft);border-color:transparent}
+  .stepnav a.cur{color:#fff;background:var(--brand);border-color:var(--brand)}
   .stepnav a b{font-variant-numeric:tabular-nums;font-weight:800}
+
+  /* ---- 좌측 진행 네비게이션 (데스크톱) ---- */
+  .layout{display:block}
+  .sidenav{display:none}
+  .sn-proj{background:var(--panel);border:1px solid var(--line);border-radius:13px;padding:12px 14px;box-shadow:var(--shadow)}
+  .sn-proj b{display:block;font-size:14px;letter-spacing:-.3px;margin-top:3px}
+  .sn-lbl{font-size:11px;font-weight:700;letter-spacing:.08em;color:var(--faint)}
+  .sn-frame{margin:16px 0 6px}
+  .sn-item{display:flex;gap:11px;padding:11px 12px;border-radius:12px;border:1px solid transparent;margin-top:6px;align-items:flex-start}
+  .sn-item:hover{background:var(--panel)}
+  .sn-item.cur{background:var(--panel);border-color:var(--brand-line);box-shadow:var(--shadow)}
+  .sn-no{width:26px;height:26px;border-radius:50%;background:var(--panel2);color:var(--muted);display:inline-flex;align-items:center;justify-content:center;font-size:12px;font-weight:800;flex-shrink:0;font-variant-numeric:tabular-nums}
+  .sn-no.done{background:var(--ok);color:#fff}
+  .sn-no.doing{background:var(--brand);color:#fff}
+  .sn-tt{min-width:0}
+  .sn-tt b{display:block;font-size:13.5px;font-weight:700;letter-spacing:-.2px}
+  .sn-tt small{display:block;font-size:11.5px;color:var(--muted);margin-top:2px;line-height:1.45}
+  .sn-st{display:inline-block;font-size:10.5px;font-weight:700;margin-top:6px;padding:2px 8px;border-radius:99px;background:var(--panel2);color:var(--muted)}
+  .sn-st.done{background:var(--ok-soft);color:var(--ok)}
+  .sn-st.doing{background:var(--brand-soft);color:var(--brand)}
+  .sn-item.rep .sn-no{border-radius:8px}
+  @media (min-width:1000px){
+    .wrap.wide{max-width:1140px}
+    .wide .layout{display:grid;grid-template-columns:270px minmax(0,1fr);gap:26px;align-items:start}
+    .wide .sidenav{display:block;position:sticky;top:20px}
+    .wide .stepnav{display:none}
+  }
 
   .stepcard{background:var(--panel);border:1px solid var(--line);border-radius:16px;margin-bottom:14px;box-shadow:var(--shadow);overflow:hidden}
   .stepcard.open{border-color:var(--brand-line)}
@@ -160,7 +188,8 @@
   @media print{
     :root{--bg:#fff;--panel:#fff;--panel2:#f3f1f8;--line:#ddd;--text:#111;--muted:#555;--faint:#888;--brand:#5638CE;--brand-soft:#f1edfc;--brand-line:#ccc;--ok:#1F9D6D;--shadow:none}
     body{background:#fff}
-    .topbar,.reportbar,.noprint{display:none!important}
+    .topbar,.reportbar,.sidenav,.noprint{display:none!important}
+    .layout{display:block!important}
     .wrap{max-width:100%;padding:0}
     .report{border:none;box-shadow:none;padding:0}
     .rsec{break-inside:avoid-page}
@@ -349,9 +378,37 @@ function topbar(backHref,backLabel){
   </div>`;
 }
 
+/* ---------- 좌측 진행 네비게이션 ---------- */
+function sidenav(p,active){
+  return `<aside class="sidenav">
+    <div class="sn-proj"><span class="sn-lbl">현재 프로젝트</span><b>${esc(p.title)}</b></div>
+    <div class="sn-lbl sn-frame">전략 프레임워크</div>
+    ${STEPS.map((s,i)=>{
+      const st=(p.steps[s.key]||{}).status||'todo';
+      return `<a href="#" class="sn-item ${active===s.key?'cur':''}" onclick="gotoStep(event,'${p.id}','${s.key}')">
+        <span class="sn-no ${st}">${st==='done'?'✓':i+1}</span>
+        <span class="sn-tt"><b>${esc(s.name)}</b><small>${esc(s.desc)}</small><span class="sn-st ${st}">${ST_LABEL[st]}</span></span>
+      </a>`;
+    }).join('')}
+    <a href="#/p/${p.id}/report" class="sn-item rep ${active==='report'?'cur':''}">
+      <span class="sn-no"><svg width="13" height="13" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><path d="M14 2v6h6"/></svg></span>
+      <span class="sn-tt"><b>최종 리포트</b><small>5단계 결과를 한 편의 보고서로 합성</small></span>
+    </a>
+  </aside>`;
+}
+function gotoStep(ev,id,key){
+  ev.preventDefault();
+  openStep=key;
+  if(location.hash!=='#/p/'+id) location.hash='#/p/'+id;
+  else route();
+  const el=document.getElementById('step-'+key);
+  if(el) el.scrollIntoView({behavior:'smooth',block:'start'});
+}
+
 /* ---------- 목록 ---------- */
 let listQuery='';
 function viewList(){
+  $('#app').className='wrap';
   const all=load();
   const q=listQuery.trim().toLowerCase();
   const list=all.filter(p=>!q||[p.title,p.industry,p.topic,p.keywords].join(' ').toLowerCase().includes(q));
@@ -400,6 +457,7 @@ function delProject(ev,id){
 
 /* ---------- 새 프로젝트 ---------- */
 function viewNew(){
+  $('#app').className='wrap';
   $('#app').innerHTML=`
     ${topbar('#/','← 목록')}
     <h1>새 전략 프로젝트</h1>
@@ -472,32 +530,38 @@ function viewDetail(id){
     const next=STEPS.find(s=>(p.steps[s.key]||{}).status!=='done');
     openStep=next?next.key:STEPS[0].key;
   }
+  $('#app').className='wrap wide';
   $('#app').innerHTML=`
     ${topbar('#/','← 목록')}
-    <div class="phead">
-      <div class="row">
-        <div>
-          <h1>${esc(p.title)}</h1>
-          <div class="sub">${esc(p.topic)}</div>
+    <div class="layout">
+      ${sidenav(p,openStep)}
+      <div class="main">
+        <div class="phead">
+          <div class="row">
+            <div>
+              <h1>${esc(p.title)}</h1>
+              <div class="sub">${esc(p.topic)}</div>
+            </div>
+            <div class="actions">
+              <button class="btn ghost small" onclick="generateAll('${p.id}')">전체 자동 생성</button>
+              <button class="btn small" onclick="location.hash='#/p/${p.id}/report'">최종 리포트</button>
+            </div>
+          </div>
+          <div class="statline">
+            <span class="pbar"><i style="width:${dc/STEPS.length*100}%"></i></span>
+            <span class="cnt-num">${dc}/${STEPS.length} 단계 완료</span>
+            <span>· ${fmtDate(p.createdAt)} 생성</span>
+          </div>
         </div>
-        <div class="actions">
-          <button class="btn ghost small" onclick="generateAll('${p.id}')">전체 자동 생성</button>
-          <button class="btn small" onclick="location.hash='#/p/${p.id}/report'">최종 리포트</button>
+        <div class="stepnav">
+          ${STEPS.map((s,i)=>{
+            const st=(p.steps[s.key]||{}).status||'todo';
+            return `<a href="#" class="${st==='done'?'done':''} ${openStep===s.key?'cur':''}" onclick="toggleStep(event,'${s.key}')"><b>${i+1}</b> ${s.name}${st==='done'?' ✓':''}</a>`;
+          }).join('')}
         </div>
-      </div>
-      <div class="statline">
-        <span class="pbar"><i style="width:${dc/STEPS.length*100}%"></i></span>
-        <span class="cnt-num">${dc}/${STEPS.length} 단계 완료</span>
-        <span>· ${fmtDate(p.createdAt)} 생성</span>
+        ${STEPS.map((s,i)=>renderStep(p,s,i)).join('')}
       </div>
     </div>
-    <div class="stepnav">
-      ${STEPS.map((s,i)=>{
-        const st=(p.steps[s.key]||{}).status||'todo';
-        return `<a href="#" class="${st==='done'?'done':''}" onclick="toggleStep(event,'${s.key}')"><b>${i+1}</b> ${s.name}${st==='done'?' ✓':''}</a>`;
-      }).join('')}
-    </div>
-    ${STEPS.map((s,i)=>renderStep(p,s,i)).join('')}
   `;
 }
 function renderStep(p,s,i){
@@ -653,8 +717,12 @@ function viewReport(id){
   if(!p){ location.hash='#/'; return; }
   const dc=doneCount(p);
   const q=`${p.customer||'타깃 고객'}이(가) "${p.topic}" 영역에서 해결하고자 하는 핵심 미충족 수요는 무엇이며, 자사의 강점${p.strengths?`(${p.strengths})`:''}을 활용해 어떤 차별화된 가치를 어떤 순서로 전달할 것인가?`;
+  $('#app').className='wrap wide';
   $('#app').innerHTML=`
     ${topbar('#/p/'+p.id,'← 프로젝트')}
+    <div class="layout">
+      ${sidenav(p,'report')}
+      <div class="main">
     <div class="reportbar">
       <button class="btn small" onclick="synthReport('${p.id}',this)">${p.report?'리포트 재합성':'리포트 합성'}</button>
       <button class="btn ghost small" onclick="window.print()">인쇄 / PDF</button>
@@ -685,6 +753,8 @@ function viewReport(id){
           ${r?`<div class="rbody">${esc(r)}</div>`:`<div class="rempty">아직 작성되지 않은 단계입니다.</div>`}
         </div>`;
       }).join('')}
+    </div>
+      </div>
     </div>
   `;
 }
