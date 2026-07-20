@@ -98,10 +98,7 @@
 <div class="wrap">
   <header>
     <div class="logo"><span class="dot"></span>트렌드 레이더</div>
-    <div style="display:flex;gap:8px">
-      <a class="gear" href="strategy.html" style="color:#b18cff;border-color:#3d3454">◆ 전략 프로젝트</a>
-      <div class="gear" onclick="openSettings()">⚙ 설정</div>
-    </div>
+    <div class="gear" onclick="openSettings()">⚙ 설정</div>
   </header>
 
   <div class="searchbox">
@@ -460,10 +457,6 @@ function ago(d){
   if(m<43200) return Math.round(m/1440)+'일 전';
   return d.getFullYear()+'.'+(d.getMonth()+1)+'.'+d.getDate();
 }
-
-/* 전략 프로젝트 페이지에서 ?q=키워드 로 진입하면 바로 검색 */
-const initQ=new URLSearchParams(location.search).get('q');
-if(initQ){ $('q').value=initQ; search(); }
 </script>
 </body>
 </html>

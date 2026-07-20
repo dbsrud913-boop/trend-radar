@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>전략 프로젝트 — 트렌드 레이더</title>
+<title>전략 프로젝트 — AI 전략 워크스페이스</title>
 <style>
   :root{
     --bg:#F7F6FB; --panel:#FFFFFF; --panel2:#F1EEF9; --line:#E4E0F0;
@@ -373,7 +373,7 @@ function topbar(backHref,backLabel){
     <a class="brand" href="#/"><span class="mark">S</span>전략 프로젝트</a>
     <div class="topbtns">
       <button class="back" onclick="openAI()">⚙ AI 설정</button>
-      <a class="back" href="${backHref}">${backLabel}</a>
+      ${backHref?`<a class="back" href="${backHref}">${backLabel}</a>`:''}
     </div>
   </div>`;
 }
@@ -413,7 +413,7 @@ function viewList(){
   const q=listQuery.trim().toLowerCase();
   const list=all.filter(p=>!q||[p.title,p.industry,p.topic,p.keywords].join(' ').toLowerCase().includes(q));
   $('#app').innerHTML=`
-    ${topbar('index.html','← 트렌드 레이더')}
+    ${topbar()}
     <h1>전략 프로젝트</h1>
     <div class="sub">총 <span class="cnt-num">${all.length}</span>개의 워크스페이스</div>
     <div class="listhead">
@@ -475,9 +475,9 @@ function viewNew(){
       <input type="text" id="f-customer" placeholder="예: 중견기업 운영팀">
       <label>타깃 지역</label>
       <input type="text" id="f-region" placeholder="예: 한국, 일본">
-      <label>트렌드 키워드 <span class="opt">우리 팀 전용 · 쉼표로 구분</span></label>
+      <label>키워드 태그 <span class="opt">쉼표로 구분</span></label>
       <input type="text" id="f-keywords" placeholder="예: AI PC, 온디바이스 AI">
-      <div class="hint">입력한 키워드는 각 단계에서 트렌드 레이더 검색으로 바로 연결되어 뉴스·유튜브·커뮤니티 근거를 모을 때 사용됩니다.</div>
+      <div class="hint">프로젝트 목록 카드에 태그로 표시되어 검색·분류에 사용됩니다.</div>
     </div>
 
     <div class="card">
@@ -568,7 +568,6 @@ function renderStep(p,s,i){
   const d=p.steps[s.key]||{};
   const st=d.status||'todo';
   const open=openStep===s.key;
-  const kw=(p.keywords||'').split(',').map(k=>k.trim()).filter(Boolean)[0]||p.industry||'';
   const hist=d.history||[];
   return `<div class="stepcard ${st} ${open?'open':''}" id="step-${s.key}">
     <button class="stephead" onclick="toggleStep(event,'${s.key}')">
@@ -581,7 +580,6 @@ function renderStep(p,s,i){
       <div class="toolrow">
         <button class="btn small gen-btn" onclick="generateStep('${p.id}','${s.key}',this)">${d.result?'AI 재생성':'AI 생성'}</button>
         <button class="btn ghost small" onclick="copyText(buildPrompt('${p.id}','${s.key}'),this)">프롬프트 복사</button>
-        ${kw?`<a class="btn ghost small" href="index.html?q=${encodeURIComponent(kw)}" target="_blank" rel="noopener">트렌드 레이더 ↗</a>`:''}
       </div>
       <div class="hint" style="margin-top:8px">AI 생성 결과는 아래에서 자유롭게 수정할 수 있습니다. 키가 없다면 '프롬프트 복사'로 ChatGPT·Claude 웹에서 생성해 붙여넣어도 됩니다.</div>
       <label>결과 정리</label>
